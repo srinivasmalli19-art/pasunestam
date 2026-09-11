@@ -18,7 +18,30 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in your Supabase project's URL and anon key
+(Supabase dashboard → Settings → API). See `PLAYBOOK.md` Part 1.3 for creating a separate dev
+project so you never test against the live database.
+
+## Database migrations and generated types
+
+Schema changes live in `supabase/migrations/`. To link this project to your Supabase project and
+regenerate `lib/supabase/database.types.ts` after a migration:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <your-project-ref>   # found in the Supabase dashboard URL
+npx supabase db push                                  # applies migrations/*.sql
+npm run db:types                                       # regenerates lib/supabase/database.types.ts
+```
+
+## Tests
+
+```bash
+npm test          # run once
+npm run test:watch
+```
 
 ## Learn More
 
