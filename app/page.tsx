@@ -10,7 +10,7 @@ export default function Home() {
         sign. Schemes, admissions, vet news and supply prices sit right beside it.
       </p>
       <p>
-        <Link href="/login" className="button-primary" style={{ display: 'inline-block', padding: '12px 20px', textDecoration: 'none' }}>
+        <Link href="/login" className="button-primary" style={{ width: 'auto' }}>
           Sign in to your desk
         </Link>
       </p>

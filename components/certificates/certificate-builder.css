@@ -1,0 +1,318 @@
+/* Certificate builder + paper, ported from pasunestam.html's .builder/.cert
+   rules so the printed/PDF certificate keeps the same look as the prototype. */
+
+.builder {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--paper);
+}
+.b-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px clamp(12px, 2.5vw, 24px);
+  border-bottom: 4px solid var(--ink);
+  background: #fff;
+  flex-wrap: wrap;
+}
+.b-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.b-tabs a {
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 13px;
+  font: 600 0.9rem var(--font-body);
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--charcoal);
+  text-decoration: none;
+}
+.b-tabs a[aria-current='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.b-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.b-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(340px, 480px) 1fr;
+  min-height: 0;
+}
+.b-form {
+  overflow: auto;
+  padding: 24px;
+  border-right: 1px solid #dce0d6;
+  background: #fff;
+}
+.b-preview {
+  overflow: auto;
+  padding: clamp(16px, 3vw, 36px);
+  background: #e4e7df;
+}
+.builder fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+  min-width: 0;
+}
+.builder legend {
+  font: 700 1.08rem var(--font-heading);
+  margin-bottom: 12px;
+  padding: 0;
+}
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #59626e;
+  min-width: 0;
+}
+.fld.full {
+  grid-column: 1 / -1;
+}
+.builder input,
+.builder select,
+.builder textarea {
+  font: 500 0.95rem var(--font-body);
+  color: var(--charcoal);
+  border: 1.5px solid #dce0d6;
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: #fff;
+  width: 100%;
+}
+.builder textarea {
+  min-height: 68px;
+  resize: vertical;
+}
+.builder-error {
+  background: #f6ddd6;
+  color: #9a3320;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.builder-note {
+  font-weight: 600;
+  color: #59626e;
+}
+.builder-note.ok {
+  color: var(--leaf);
+}
+
+.cert {
+  position: relative;
+  background: #fff;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 52px 56px 190px;
+  font: 15px/1.65 var(--font-certificate);
+  color: #1a1a1a;
+  box-shadow: 0 24px 44px -22px rgba(36, 51, 107, 0.4);
+  min-height: 1000px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cert::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 4px double var(--ink);
+  pointer-events: none;
+}
+.c-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-bottom: 1.5px solid var(--ink);
+  padding-bottom: 14px;
+}
+.c-head svg {
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+}
+.c-org {
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  font-size: 1rem;
+}
+.c-inst {
+  font-weight: 700;
+  font-size: 1.22rem;
+  line-height: 1.3;
+}
+.c-addr {
+  font-size: 0.9rem;
+  color: #444;
+}
+.c-title {
+  text-align: center;
+  font: 700 1.55rem var(--font-certificate);
+  margin: 24px 0 0;
+  text-decoration: underline;
+  text-underline-offset: 7px;
+  text-decoration-thickness: 1px;
+}
+.c-te {
+  text-align: center;
+  font-family: var(--font-telugu);
+  color: #555;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+.c-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 14px;
+  font-size: 0.92rem;
+}
+.cert p {
+  margin: 0 0 12px;
+  text-align: justify;
+}
+.cert h5 {
+  font: 700 0.95rem var(--font-certificate);
+  margin: 16px 0 4px;
+  color: var(--ink);
+}
+.c-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px;
+  font-size: 0.93rem;
+}
+.c-table td {
+  border: 1px solid #a3abbd;
+  padding: 6px 10px;
+  vertical-align: top;
+  text-align: left;
+}
+.c-table td:first-child {
+  width: 38%;
+  color: #3a3a3a;
+  background: #f4f6fa;
+}
+.blank {
+  display: inline-block;
+  min-width: 120px;
+  border-bottom: 1px dotted #8a8a8a;
+  height: 1.05em;
+  vertical-align: baseline;
+}
+.sign {
+  position: absolute;
+  right: 56px;
+  bottom: 64px;
+  text-align: center;
+  min-width: 250px;
+  border-top: 1px solid #333;
+  padding-top: 6px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.stamp {
+  position: absolute;
+  left: 66px;
+  bottom: 52px;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  transform: rotate(-14deg);
+  color: #c2c7d1;
+  font: 700 0.74rem/1.3 var(--font-body);
+  padding: 12px;
+}
+.stamp::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+.stamp b {
+  font: 800 1.3rem/1.1 var(--font-heading);
+  display: block;
+  letter-spacing: 0.04em;
+}
+.stamp.issued {
+  color: var(--ink);
+}
+
+@media (max-width: 980px) {
+  .b-body {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+  .b-form {
+    overflow: visible;
+    border-right: 0;
+  }
+  .b-preview {
+    overflow: visible;
+  }
+}
+@media (max-width: 560px) {
+  .builder fieldset {
+    grid-template-columns: 1fr;
+  }
+  .cert {
+    padding: 34px 26px 220px;
+    font-size: 13px;
+    min-height: 0;
+  }
+  .sign {
+    right: 26px;
+    left: 26px;
+    min-width: 0;
+  }
+  .stamp {
+    left: 30px;
+    bottom: 96px;
+    width: 110px;
+    height: 110px;
+  }
+}
+
+/* Print only the certificate paper, nothing else on the page. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .cert-print-area,
+  .cert-print-area * {
+    visibility: visible;
+  }
+  .cert-print-area {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+  }
+  .cert {
+    box-shadow: none;
+    margin: 0;
+  }
+}
