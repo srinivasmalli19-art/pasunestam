@@ -18,23 +18,45 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Environment variables
+## Backend: Firebase
 
-Copy `.env.example` to `.env.local` and fill in your Supabase project's URL and anon key
-(Supabase dashboard → Settings → API). See `PLAYBOOK.md` Part 1.3 for creating a separate dev
-project so you never test against the live database.
+This app uses Firebase for auth (Identity Toolkit REST API + `firebase-admin` session cookies —
+see `lib/firebase/`) and Firestore for data, accessed only from the server (`firebase-admin`,
+never the client SDK). Firestore Security Rules (`firestore.rules`) therefore deny all
+client-side access by default; every read/write happens through Server Components/Actions.
 
-## Database migrations and generated types
+### Option A — develop against the Firebase Local Emulator Suite (recommended)
 
-Schema changes live in `supabase/migrations/`. To link this project to your Supabase project and
-regenerate `lib/supabase/database.types.ts` after a migration:
+No real Firebase project needed. Requires Java (`java -version`) and the Firebase CLI:
 
 ```bash
-npx supabase login
-npx supabase link --project-ref <your-project-ref>   # found in the Supabase dashboard URL
-npx supabase db push                                  # applies migrations/*.sql
-npm run db:types                                       # regenerates lib/supabase/database.types.ts
+npm run emulators          # starts Auth (9099) + Firestore (8080) + emulator UI (4000)
 ```
+
+In another terminal, seed the certificate templates and start the app:
+
+```bash
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run db:seed
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run dev
+```
+
+(Or set those two vars in `.env.local` so you don't have to repeat them.) The emulator UI at
+http://localhost:4000 lets you inspect Firestore documents and Auth users, and manually mark a
+signed-up user's email as verified (real email sending doesn't happen locally) so you can sign in.
+
+### Option B — a real Firebase project
+
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com), enable
+   **Authentication → Email/Password** and **Firestore Database** (production mode).
+2. Register a Web app to get `apiKey`/`projectId` for `NEXT_PUBLIC_FIREBASE_*`.
+3. **Project settings → Service accounts → Generate new private key** for the
+   `FIREBASE_CLIENT_EMAIL`/`FIREBASE_PRIVATE_KEY` server credentials.
+4. Copy `.env.example` to `.env.local` and fill in both sets of values.
+5. Deploy the security rules: `npx firebase-tools deploy --only firestore:rules --project <your-project-id>`.
+6. Seed the certificate templates: `npm run db:seed`.
+
+Consider a separate `pasunestam-dev` project so you never test against real data, same reasoning
+as `PLAYBOOK.md` Part 1.3 originally described for Supabase.
 
 ## Tests
 

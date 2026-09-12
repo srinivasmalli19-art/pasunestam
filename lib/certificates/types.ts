@@ -1,5 +1,6 @@
 // Shapes shared between the certificate builder, the template-import (Phase 4)
-// flow, and the `certificate_templates.fields` / `.body` JSON columns.
+// flow, and the `certificateTemplates` Firestore collection's `fields` /
+// `body` array fields.
 
 export type CertificateFieldType =
   | 'text'
@@ -45,12 +46,27 @@ export interface CertificateTemplate {
   id: string;
   key: string;
   name: string;
-  title_en: string;
-  title_te: string;
-  number_prefix: string;
+  titleEn: string;
+  titleTe: string;
+  numberPrefix: string;
   fields: CertificateField[];
   body: CertificateBodyBlock[];
   published: boolean;
+}
+
+export interface Certificate {
+  id: string;
+  templateId: string;
+  data: CertificateData;
+  number: string | null;
+  status: CertificateStatus;
+  cancelledReason: string | null;
+  cancelledAt: string | null;
+  createdBy: string;
+  issuedBy: string | null;
+  issuedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** The "Issuing veterinarian" fields, common to every certificate type. */

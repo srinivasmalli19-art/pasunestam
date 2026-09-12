@@ -1,13 +1,10 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/session';
 import { signOut } from '@/lib/auth/actions';
 import Logo from './Logo';
 
 export default async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   return (
     <header

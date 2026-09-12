@@ -9,9 +9,9 @@ import type { CertificateData, CertificateField, CertificateStatus, CertificateT
 import './certificate-builder.css';
 
 interface ProfileRow {
-  full_name: string | null;
+  fullName: string | null;
   designation: string;
-  registration_no: string | null;
+  registrationNo: string | null;
   institution: string | null;
   mandal: string | null;
   district: string | null;
@@ -49,9 +49,9 @@ export default function CertificateBuilder({
   const [isPending, startTransition] = useTransition();
 
   const [profileState, setProfileState] = useState<ProfileState>({
-    fullName: profile?.full_name ?? '',
+    fullName: profile?.fullName ?? '',
     designation: profile?.designation ?? 'Veterinary Assistant Surgeon',
-    registrationNo: profile?.registration_no ?? '',
+    registrationNo: profile?.registrationNo ?? '',
     institution: profile?.institution ?? '',
     mandal: profile?.mandal ?? '',
     district: profile?.district ?? '',
@@ -239,8 +239,8 @@ export default function CertificateBuilder({
         <div className="b-preview">
           <div className="cert-print-area">
             <CertificatePreview
-              titleEn={template.title_en}
-              titleTe={template.title_te}
+              titleEn={template.titleEn}
+              titleTe={template.titleTe}
               body={template.body}
               data={data}
               profile={{

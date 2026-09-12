@@ -1,21 +1,16 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/session';
+import { getProfile } from '@/lib/auth/profile';
 import { getPublishedTemplates } from '@/lib/certificates/queries';
 
 // proxy.ts already redirects signed-out visitors to /login before this
 // renders, so `user` is always present here.
 export default async function DeskPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
-  const [{ data: profile }, templates] = await Promise.all([
-    supabase.from('profiles').select('full_name, role').eq('id', user!.id).single(),
-    getPublishedTemplates(),
-  ]);
+  const [profile, templates] = await Promise.all([getProfile(user!.uid), getPublishedTemplates()]);
 
-  const name = profile?.full_name || user!.email;
+  const name = profile?.fullName || user!.email;
 
   return (
     <main className="container">
@@ -30,7 +25,12 @@ export default async function DeskPage() {
       <h2 style={{ fontSize: '1.3rem' }}>Issue a certificate</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
         {templates.map((t) => (
-          <Link key={t.key} href={`/desk/certificates/new/${t.key}`} className="button-ghost" style={{ width: 'auto', justifyContent: 'flex-start' }}>
+          <Link
+            key={t.key}
+            href={`/desk/certificates/new/${t.key}`}
+            className="button-ghost"
+            style={{ width: 'auto', justifyContent: 'flex-start' }}
+          >
             {t.name}
           </Link>
         ))}
