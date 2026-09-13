@@ -238,8 +238,20 @@
   border-radius: 14px;
   padding: 14px 18px;
 }
+.recent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.recent-head a {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 .recent h4 {
-  margin: 0 0 6px;
+  margin: 0;
   font: 700 1rem var(--font-heading);
   color: var(--charcoal);
 }

@@ -1,0 +1,62 @@
+.certs-list-page {
+  padding-top: 32px;
+}
+.certs-list-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.certs-search {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.certs-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.certs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.certs-row-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.certs-status {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 11px;
+  white-space: nowrap;
+}
+.certs-status-draft {
+  background: #fbf0d5;
+  color: #7a5410;
+}
+.certs-status-issued {
+  background: #e2edda;
+  color: var(--leaf);
+}
+.certs-status-cancelled {
+  background: #f1e4e1;
+  color: #8a3b2b;
+}
+.certs-row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

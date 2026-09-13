@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import Link from 'next/link';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import CertificatePreview from './CertificatePreview';
 import { saveDraftCertificate, issueCertificate } from '@/lib/certificates/actions';
-import type { CertificateData, CertificateField, CertificateStatus, CertificateTemplate } from '@/lib/certificates/types';
+import type { Certificate, CertificateData, CertificateField, CertificateStatus, CertificateTemplate } from '@/lib/certificates/types';
 import './certificate-builder.css';
 
 interface ProfileRow {
@@ -70,32 +69,48 @@ export default function CertificateBuilder({
   const [number, setNumber] = useState(initialNumber);
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
+  const [dirty, setDirty] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   const issued = status === 'issued';
 
+  // Warn on closing the tab/browser, too, not just in-app navigation.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
   function updateField(id: string, value: string) {
     setData((prev) => ({ ...prev, [id]: value }));
+    setDirty(true);
   }
   function updateProfile(id: keyof ProfileState, value: string) {
     setProfileState((prev) => ({ ...prev, [id]: value }));
+    setDirty(true);
+  }
+
+  async function persistDraft(): Promise<Certificate> {
+    const cert = await saveDraftCertificate({ certificateId, templateId: template.id, data, profile: profileState });
+    setCertificateId(cert.id);
+    setStatus(cert.status);
+    setDirty(false);
+    if (!initialCertificateId) {
+      router.replace(`/desk/certificates/new/${template.key}?draft=${cert.id}`);
+    }
+    return cert;
   }
 
   function handleSave() {
     setError('');
     startTransition(async () => {
       try {
-        const cert = await saveDraftCertificate({
-          certificateId,
-          templateId: template.id,
-          data,
-          profile: profileState,
-        });
-        setCertificateId(cert.id);
-        setStatus(cert.status);
+        await persistDraft();
         setNote(`Saved at ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`);
-        if (!initialCertificateId) {
-          router.replace(`/desk/certificates/new/${template.key}?draft=${cert.id}`);
-        }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not save. Try again.');
       }
@@ -115,16 +130,12 @@ export default function CertificateBuilder({
     }
     startTransition(async () => {
       try {
-        const saved = await saveDraftCertificate({
-          certificateId,
-          templateId: template.id,
-          data,
-          profile: profileState,
-        });
+        const saved = await persistDraft();
         const issuedCert = await issueCertificate(saved.id);
         setCertificateId(issuedCert.id);
         setStatus(issuedCert.status);
         setNumber(issuedCert.number);
+        setDirty(false);
         setNote(`${template.name} ${issuedCert.number} issued.`);
         if (!initialCertificateId) {
           router.replace(`/desk/certificates/new/${template.key}?draft=${issuedCert.id}`);
@@ -136,18 +147,50 @@ export default function CertificateBuilder({
     });
   }
 
+  function goTo(href: string) {
+    if (dirty) {
+      setPendingHref(href);
+    } else {
+      router.push(href);
+    }
+  }
+
+  function discardAndGo() {
+    if (pendingHref) router.push(pendingHref);
+    setPendingHref(null);
+  }
+
+  function saveAndGo() {
+    setError('');
+    startTransition(async () => {
+      try {
+        await persistDraft();
+        if (pendingHref) router.push(pendingHref);
+        setPendingHref(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not save. Try again.');
+        setPendingHref(null);
+      }
+    });
+  }
+
   return (
     <div className="builder">
       <div className="b-head">
-        <Link href="/desk" className="button-ghost button-sm">
+        <button type="button" className="button-ghost button-sm" onClick={() => goTo('/desk')}>
           Close
-        </Link>
+        </button>
         <h2 style={{ fontSize: '1.35rem', margin: 0 }}>{template.name}</h2>
         <div className="b-tabs">
           {templates.map((t) => (
-            <Link key={t.key} href={`/desk/certificates/new/${t.key}`} aria-current={t.key === template.key}>
+            <button
+              key={t.key}
+              type="button"
+              aria-current={t.key === template.key}
+              onClick={() => t.key !== template.key && goTo(`/desk/certificates/new/${t.key}`)}
+            >
               {t.name}
-            </Link>
+            </button>
           ))}
         </div>
         <div className="b-actions">
@@ -159,14 +202,20 @@ export default function CertificateBuilder({
           >
             Save draft
           </button>
-          <button
-            type="button"
-            className="button-primary button-sm"
-            disabled={isPending || issued}
-            onClick={handleIssue}
-          >
-            Issue and print
-          </button>
+          {issued ? (
+            <button type="button" className="button-primary button-sm" onClick={() => window.print()}>
+              Print / save as PDF
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="button-primary button-sm"
+              disabled={isPending}
+              onClick={handleIssue}
+            >
+              Issue and print
+            </button>
+          )}
         </div>
       </div>
 
@@ -257,6 +306,26 @@ export default function CertificateBuilder({
           </div>
         </div>
       </div>
+
+      {pendingHref && (
+        <div className="modal-bg" role="dialog" aria-modal="true" aria-labelledby="unsaved-title">
+          <div className="modal">
+            <h3 id="unsaved-title">You have unsaved changes</h3>
+            <p>Save this certificate as a draft before leaving, or discard what you&apos;ve typed?</p>
+            <div className="modal-actions">
+              <button type="button" className="button-ghost button-sm" onClick={() => setPendingHref(null)}>
+                Cancel
+              </button>
+              <button type="button" className="button-ghost button-sm" onClick={discardAndGo}>
+                Discard changes
+              </button>
+              <button type="button" className="button-primary button-sm" disabled={isPending} onClick={saveAndGo}>
+                Save and continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

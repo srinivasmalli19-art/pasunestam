@@ -51,14 +51,15 @@ export async function getOwnCertificateById(id: string): Promise<Certificate | n
   return { id: snap.id, ...data } as Certificate;
 }
 
-/** The vet's own issued certificates, most recent first — for the desk's "Recently issued" panel. */
-export async function getRecentIssuedCertificates(
-  uid: string,
-  max = 4
-): Promise<Array<Certificate & { templateKey: string; templateName: string }>> {
+export type CertificateWithTemplate = Certificate & { templateKey: string; templateName: string };
+
+/**
+ * Every certificate the vet has ever started, with its template joined in.
+ * Single equality filter — no composite index needed; a vet's own
+ * certificate count is small enough to sort/filter in code.
+ */
+async function getAllOwnCertificates(uid: string): Promise<CertificateWithTemplate[]> {
   const [certsSnap, templatesSnap] = await Promise.all([
-    // Single equality filter — no composite index needed. A vet's own
-    // certificate count is small enough to sort/filter/limit in code.
     adminDb.collection(CERTIFICATES).where('createdBy', '==', uid).get(),
     adminDb.collection(TEMPLATES).get(),
   ]);
@@ -66,12 +67,24 @@ export async function getRecentIssuedCertificates(
 
   return certsSnap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Certificate)
-    .filter((c) => c.status === 'issued')
-    .sort((a, b) => (b.issuedAt ?? '').localeCompare(a.issuedAt ?? ''))
-    .slice(0, max)
     .map((c) => ({
       ...c,
       templateKey: (templateById.get(c.templateId)?.key as string) ?? '',
       templateName: (templateById.get(c.templateId)?.name as string) ?? 'Certificate',
     }));
+}
+
+/** The vet's own issued certificates, most recent first — for the desk's "Recently issued" panel. */
+export async function getRecentIssuedCertificates(uid: string, max = 4): Promise<CertificateWithTemplate[]> {
+  const all = await getAllOwnCertificates(uid);
+  return all
+    .filter((c) => c.status === 'issued')
+    .sort((a, b) => (b.issuedAt ?? '').localeCompare(a.issuedAt ?? ''))
+    .slice(0, max);
+}
+
+/** Every certificate the vet has started (draft, issued or cancelled), most recently updated first — the "Saved" list. */
+export async function getMyCertificates(uid: string): Promise<CertificateWithTemplate[]> {
+  const all = await getAllOwnCertificates(uid);
+  return all.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
 }

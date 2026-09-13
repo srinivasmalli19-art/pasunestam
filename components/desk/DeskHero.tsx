@@ -131,7 +131,10 @@ export default function DeskHero({ greeting, templates, recent, due }: Props) {
           </span>
         </div>
         <div className="recent">
-          <h4>Recently issued</h4>
+          <div className="recent-head">
+            <h4>Recently issued</h4>
+            <Link href="/desk/certificates">See all saved certificates</Link>
+          </div>
           {recent.length ? (
             <ul>
               {recent.map((c) => (

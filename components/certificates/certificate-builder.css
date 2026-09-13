@@ -21,7 +21,7 @@
   gap: 6px;
   flex-wrap: wrap;
 }
-.b-tabs a {
+.b-tabs button {
   border: 0;
   border-radius: 9px;
   padding: 8px 13px;
@@ -31,9 +31,10 @@
   color: var(--charcoal);
   text-decoration: none;
 }
-.b-tabs a[aria-current='true'] {
+.b-tabs button[aria-current='true'] {
   background: var(--ink);
   color: #fff;
+  cursor: default;
 }
 .b-actions {
   margin-left: auto;
@@ -113,6 +114,38 @@
 }
 .builder-note.ok {
   color: var(--leaf);
+}
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 33, 39, 0.55);
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.modal-bg .modal {
+  background: #fff;
+  border-radius: 18px;
+  max-width: 440px;
+  width: 100%;
+  padding: 24px;
+}
+.modal-bg .modal h3 {
+  font: 800 1.3rem var(--font-heading);
+  margin: 0 0 8px;
+  color: var(--charcoal);
+}
+.modal-bg .modal p {
+  margin: 0 0 18px;
+  color: var(--muted);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cert {
