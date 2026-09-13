@@ -286,7 +286,12 @@
   color: var(--ink);
 }
 
-@media (max-width: 980px) {
+/* 860px rather than the prototype's 980px: a non-maximized laptop browser
+   window commonly lands in the 860-980px range, and side-by-side still
+   works fine there (the preview column just gets its own scrollbar via
+   .b-preview's overflow:auto below 480px+ isn't reached until much
+   narrower than that). */
+@media (max-width: 860px) {
   .b-body {
     grid-template-columns: 1fr;
     overflow: auto;

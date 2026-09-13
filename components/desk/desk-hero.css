@@ -281,7 +281,7 @@
   margin: 0;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 860px) {
   .hero {
     grid-template-columns: 1fr;
   }
