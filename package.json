@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:seed": "tsx scripts/seed-templates.ts",
+    "db:seed:content": "tsx scripts/seed-content.ts",
     "emulators": "firebase emulators:start --only auth,firestore"
   },
   "dependencies": {
