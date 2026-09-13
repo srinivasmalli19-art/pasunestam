@@ -88,3 +88,45 @@ export async function getMyCertificates(uid: string): Promise<CertificateWithTem
   const all = await getAllOwnCertificates(uid);
   return all.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
 }
+
+export interface VerifiedCertificate {
+  number: string;
+  templateName: string;
+  issuedAt: string | null;
+  owner: string;
+  species: string;
+  tag: string;
+  vetName: string;
+  institution: string;
+}
+
+/**
+ * The public /verify lookup: only ever returns something for a genuinely
+ * *issued* certificate, never a draft or cancelled one, regardless of
+ * whether the number happens to match.
+ */
+export async function getCertificateByNumber(number: string): Promise<VerifiedCertificate | null> {
+  const trimmed = number.trim().toUpperCase();
+  if (!trimmed) return null;
+
+  const snap = await adminDb.collection(CERTIFICATES).where('number', '==', trimmed).limit(1).get();
+  if (snap.empty) return null;
+  const cert = snap.docs[0].data();
+  if (cert.status !== 'issued') return null;
+
+  const [templateSnap, profileSnap] = await Promise.all([
+    adminDb.collection(TEMPLATES).doc(cert.templateId).get(),
+    cert.issuedBy ? adminDb.collection('profiles').doc(cert.issuedBy).get() : Promise.resolve(null),
+  ]);
+
+  return {
+    number: cert.number,
+    templateName: (templateSnap.data()?.name as string) ?? 'Certificate',
+    issuedAt: cert.issuedAt ?? null,
+    owner: cert.data?.owner ?? '',
+    species: cert.data?.species ?? '',
+    tag: cert.data?.tag ?? '',
+    vetName: (profileSnap?.data()?.fullName as string) ?? '',
+    institution: (profileSnap?.data()?.institution as string) ?? '',
+  };
+}
