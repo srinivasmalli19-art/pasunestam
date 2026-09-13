@@ -33,6 +33,11 @@ export function getFirebaseAdminCredentials() {
   };
 }
 
+/** The Storage bucket for uploaded scheme forms. Falls back to the modern default naming if not set explicitly. */
+export function getStorageBucket(): string {
+  return process.env.FIREBASE_STORAGE_BUCKET || `${getFirebaseProjectId()}.firebasestorage.app`;
+}
+
 export function getPublicFirebaseApiKey(): string {
   // The emulator doesn't validate the API key at all, so local development
   // needs no real Firebase project — only a real project requires the real key.

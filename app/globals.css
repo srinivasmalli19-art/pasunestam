@@ -205,6 +205,46 @@ input[type='submit'] {
   font-size: 0.87rem;
 }
 
+.sec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.sec-head p {
+  margin: 0.45em 0 0;
+  color: var(--muted);
+  max-width: 60ch;
+}
+.sec-head .button-ghost,
+.sec-head .button-primary {
+  width: auto;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.chips button {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: 600 0.88rem var(--font-body);
+  cursor: pointer;
+  color: var(--charcoal);
+  min-height: 0;
+}
+.chips button[aria-pressed='true'] {
+  background: var(--charcoal);
+  color: #fff;
+  border-color: var(--charcoal);
+}
+
 .muted {
   color: var(--muted);
 }

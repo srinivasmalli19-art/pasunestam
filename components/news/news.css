@@ -3,35 +3,6 @@
   margin: 0 auto;
   padding: 40px clamp(16px, 4vw, 48px) 60px;
 }
-.sec-head {
-  margin-bottom: 20px;
-}
-.sec-head p {
-  margin: 0.45em 0 0;
-  color: var(--muted);
-  max-width: 60ch;
-}
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.chips button {
-  border: 1.5px solid var(--line);
-  background: #fff;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font: 600 0.88rem var(--font-body);
-  cursor: pointer;
-  color: var(--charcoal);
-  min-height: 0;
-}
-.chips button[aria-pressed='true'] {
-  background: var(--charcoal);
-  color: #fff;
-  border-color: var(--charcoal);
-}
 .feature {
   position: relative;
   width: 100%;

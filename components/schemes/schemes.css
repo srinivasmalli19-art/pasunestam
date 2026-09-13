@@ -1,0 +1,68 @@
+.schemes-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px clamp(16px, 4vw, 48px) 60px;
+}
+.rows {
+  border-top: 2px solid var(--charcoal);
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 110px auto;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.row h3 {
+  font: 700 1.12rem / 1.3 var(--font-heading);
+  margin: 0;
+  color: var(--charcoal);
+}
+.row p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+.tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  justify-self: start;
+}
+.tag.Central {
+  background: #e2edda;
+  color: var(--leaf);
+}
+.tag.State {
+  background: #fbf0d5;
+  color: #7a5410;
+}
+.tag.Insurance {
+  background: #e6e9f4;
+  color: var(--ink);
+}
+.tag.Credit {
+  background: #f1e4e1;
+  color: #8a3b2b;
+}
+.tag.Registers {
+  background: #e9ece4;
+  color: var(--charcoal);
+}
+.r-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.r-actions .button-primary,
+.r-actions .button-ghost {
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

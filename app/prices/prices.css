@@ -3,14 +3,6 @@
   margin: 0 auto;
   padding: 40px clamp(16px, 4vw, 48px) 60px;
 }
-.prices-page > .sec-head {
-  margin-bottom: 26px;
-}
-.sec-head p {
-  margin: 0.45em 0 0;
-  color: var(--muted);
-  max-width: 60ch;
-}
 .price-wrap {
   display: grid;
   grid-template-columns: 340px 1fr;

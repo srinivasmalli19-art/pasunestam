@@ -51,9 +51,13 @@ signed-up user's email as verified (real email sending doesn't happen locally) s
 2. Register a Web app to get `apiKey`/`projectId` for `NEXT_PUBLIC_FIREBASE_*`.
 3. **Project settings → Service accounts → Generate new private key** for the
    `FIREBASE_CLIENT_EMAIL`/`FIREBASE_PRIVATE_KEY` server credentials.
-4. Copy `.env.example` to `.env.local` and fill in both sets of values.
-5. Deploy the security rules: `npx firebase-tools deploy --only firestore:rules --project <your-project-id>`.
-6. Seed the certificate templates: `npm run db:seed`.
+4. **Storage → Get started** — a separate step from Firestore, easy to miss. Needed for uploading
+   scheme form files on `/schemes`; everything else works without it.
+5. Copy `.env.example` to `.env.local` and fill in both sets of values.
+6. Deploy the security rules: `npx firebase-tools deploy --only firestore:rules,storage:rules --project <your-project-id>`.
+7. Seed sample data: `npm run db:seed` (certificate templates) and `npm run db:seed:content`
+   (schemes/news/admissions/prices/cases — all sample content, same disclosure the prototype's own
+   footer makes).
 
 Consider a separate `pasunestam-dev` project so you never test against real data, same reasoning
 as `PLAYBOOK.md` Part 1.3 originally described for Supabase.

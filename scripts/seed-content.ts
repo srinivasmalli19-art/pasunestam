@@ -10,11 +10,13 @@ import type { Product } from '../lib/prices/types';
 import type { Article } from '../lib/news/types';
 import type { Admission } from '../lib/admissions/types';
 import type { Case } from '../lib/cases/types';
+import type { Scheme } from '../lib/schemes/types';
 
 type SeedProduct = Omit<Product, 'id'>;
 type SeedArticle = Omit<Article, 'id'>;
 type SeedAdmission = Omit<Admission, 'id'>;
 type SeedCase = Omit<Case, 'id'>;
+type SeedScheme = Omit<Scheme, 'id'>;
 
 try {
   process.loadEnvFile('.env.local');
@@ -232,11 +234,87 @@ const CASES: SeedCase[] = [
   },
 ];
 
+const SCHEMES: SeedScheme[] = [
+  {
+    name: 'National Livestock Mission — entrepreneurship',
+    tag: 'Central',
+    description: 'Individuals, FPOs and SHGs setting up poultry, sheep, goat, pig or fodder units.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-01T00:00:00.000Z',
+  },
+  {
+    name: 'Rashtriya Gokul Mission',
+    tag: 'Central',
+    description: 'Breed improvement of indigenous cattle and buffalo, breeding farms and AI services.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-02T00:00:00.000Z',
+  },
+  {
+    name: 'Animal Husbandry Infrastructure Development Fund',
+    tag: 'Central',
+    description: 'Dairy, meat processing and feed plants, with interest subvention on loans.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-03T00:00:00.000Z',
+  },
+  {
+    name: 'Kisan Credit Card — animal husbandry',
+    tag: 'Credit',
+    description: 'Working capital for dairy, sheep, goat and poultry farmers through banks.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-04T00:00:00.000Z',
+  },
+  {
+    name: 'Livestock insurance — proposal form',
+    tag: 'Insurance',
+    description: 'Enrol cattle, buffalo, sheep and goats. Needs ear tag and valuation certificate.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-05T00:00:00.000Z',
+  },
+  {
+    name: 'Livestock insurance — death claim',
+    tag: 'Insurance',
+    description: 'Claim with post-mortem report, ear tag and photographs of the carcass.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-06T00:00:00.000Z',
+  },
+  {
+    name: 'FMD vaccination and tagging register',
+    tag: 'Registers',
+    description: 'Village-wise record of vaccination and ear tagging for each round.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-07T00:00:00.000Z',
+  },
+  {
+    name: 'Fodder seed and mini-kit application',
+    tag: 'State',
+    description: 'Subsidised fodder seed for farmers with milch animals. Use your district form.',
+    fileUrl: null,
+    fileName: null,
+    createdBy: null,
+    createdAt: '2026-08-08T00:00:00.000Z',
+  },
+];
+
 async function main() {
   await upsertByField('products', PRODUCTS, 'name');
   await upsertByField('articles', ARTICLES, 'title');
   await upsertByField('admissions', ADMISSIONS, 'title');
   await upsertByField('cases', CASES, 'title');
+  await upsertByField('schemes', SCHEMES, 'name');
   console.log('Done.');
 }
 

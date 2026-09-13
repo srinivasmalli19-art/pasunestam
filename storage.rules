@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Same posture as firestore.rules: every upload goes through the server via
+// firebase-admin (which bypasses these rules entirely), so the client-facing
+// default is simply deny-all. A file made public via file.makePublic() is
+// still reachable at its direct GCS URL — that access path is independent
+// of these rules, which only govern the Firebase Storage SDK/REST API.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
