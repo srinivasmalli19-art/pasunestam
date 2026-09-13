@@ -95,4 +95,25 @@ describe('renderBody', () => {
     );
     expect(html).toContain('11 Sept 2026, 05:30');
   });
+
+  it('renders an animal-table with one column per animal', () => {
+    const html = renderBody(
+      [{ type: 'animal-table', rows: [{ label: 'Breed', field: 'breed' }, { label: 'Age', field: 'age' }] }],
+      {},
+      [
+        { breed: 'Ongole', age: '4 years' },
+        { breed: 'Murrah', age: '5 years' },
+      ]
+    );
+    expect(html).toContain('<th>Animal 1</th>');
+    expect(html).toContain('<th>Animal 2</th>');
+    expect(html).toContain('<td>Breed</td><td>Ongole</td><td>Murrah</td>');
+    expect(html).toContain('<td>Age</td><td>4 years</td><td>5 years</td>');
+  });
+
+  it('renders a single blank animal column when no animals are given yet', () => {
+    const html = renderBody([{ type: 'animal-table', rows: [{ label: 'Breed', field: 'breed' }] }], {}, []);
+    expect(html).toContain('<th>Animal 1</th>');
+    expect(html).toContain('<td>Breed</td><td><span class="blank"></span></td>');
+  });
 });

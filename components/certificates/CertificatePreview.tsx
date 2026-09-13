@@ -6,13 +6,14 @@ interface Props {
   titleTe: string;
   body: CertificateBodyBlock[];
   data: CertificateData;
+  animals?: CertificateData[];
   profile: VetProfile;
   number: string | null;
   issued: boolean;
 }
 
-export default function CertificatePreview({ titleEn, titleTe, body, data, profile, number, issued }: Props) {
-  const bodyHtml = renderBody(body, data);
+export default function CertificatePreview({ titleEn, titleTe, body, data, animals = [], profile, number, issued }: Props) {
+  const bodyHtml = renderBody(body, data, animals);
   const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
   return (

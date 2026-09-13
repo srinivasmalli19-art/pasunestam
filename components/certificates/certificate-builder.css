@@ -187,6 +187,45 @@
   color: #3a3a3a;
   background: #f4f6fa;
 }
+.animal-table th {
+  border: 1px solid #a3abbd;
+  padding: 6px 10px;
+  background: #edf0f7;
+  font-weight: 700;
+  text-align: center;
+}
+.animal-table td:first-child {
+  width: auto;
+  min-width: 140px;
+}
+
+.animals-section {
+  margin-top: 8px;
+}
+.animals-section > legend {
+  font: 700 1.08rem var(--font-heading);
+  margin-bottom: 12px;
+}
+.animal-fieldset {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.animal-legend {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 700 0.95rem var(--font-body);
+  color: var(--charcoal);
+  padding: 0;
+  margin-bottom: 4px;
+}
+
 .blank {
   display: inline-block;
   min-width: 120px;

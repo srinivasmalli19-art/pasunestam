@@ -129,14 +129,35 @@ function renderTableRow(label: string, fieldSpec: string, data: CertificateData,
   return `<tr><td>${escapeHtml(label)}</td><td>${filter === 'currency' ? value || '<span class="blank"></span>' : valueOrBlank(value)}</td></tr>`;
 }
 
+/**
+ * One or more animals side by side as columns, each row one particular —
+ * the real Health Certificate's layout (see lib/certificates/types.ts).
+ * Always renders at least one (possibly blank) column so the table shape
+ * doesn't collapse while the vet hasn't added an animal yet.
+ */
+function renderAnimalTable(rows: Array<{ label: string; field: string }>, animals: CertificateData[]): string {
+  const columns = animals.length ? animals : [{}];
+  const header = `<tr><th></th>${columns.map((_, i) => `<th>Animal ${i + 1}</th>`).join('')}</tr>`;
+  const body = rows
+    .map(
+      (r) =>
+        `<tr><td>${escapeHtml(r.label)}</td>${columns.map((animal) => `<td>${valueOrBlank(animal[r.field])}</td>`).join('')}</tr>`
+    )
+    .join('');
+  return `<table class="c-table animal-table">${header}${body}</table>`;
+}
+
 /** Renders every block of a template's body into the certificate's HTML markup. */
-export function renderBody(body: CertificateBodyBlock[], data: CertificateData): string {
+export function renderBody(body: CertificateBodyBlock[], data: CertificateData, animals: CertificateData[] = []): string {
   return body
     .map((block) => {
       if (block.type === 'heading') return `<h5>${escapeHtml(block.text)}</h5>`;
       if (block.type === 'paragraph') return `<p>${renderText(block.text, data)}</p>`;
       if (block.type === 'table') {
         return `<table class="c-table">${block.rows.map((r) => renderTableRow(r.label, r.field, data, r.filter)).join('')}</table>`;
+      }
+      if (block.type === 'animal-table') {
+        return renderAnimalTable(block.rows, animals);
       }
       return '';
     })

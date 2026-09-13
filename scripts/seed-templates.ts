@@ -4,10 +4,14 @@
 // FIRESTORE_EMULATOR_HOST first, e.g. via `npm run emulators` in another
 // terminal) or a real project (via .env.local's service account).
 //
-// PLACEHOLDER WORDING: the user's real health/valuation/post-mortem
-// certificates were never attached to this project — this seed uses the
-// wording worked out in pasunestam.html. Replace title/body text below once
-// the real documents are available.
+// Health certificate: matches the user's real "Health and Valuation
+// Certificate" paper form (uploaded 2026-09-13) — shared owner/village/
+// mandal details once, then a repeatable "Particulars and description of
+// the Milch Animal(s)" table, one column per animal.
+//
+// Valuation/post-mortem: still PLACEHOLDER wording from pasunestam.html —
+// the user's real documents for those two haven't been provided yet.
+// Replace once available, same as health certificate was just replaced.
 
 import type { CertificateBodyBlock, CertificateField } from '../lib/certificates/types';
 
@@ -25,8 +29,30 @@ interface SeedTemplate {
   titleTe: string;
   numberPrefix: string;
   fields: CertificateField[];
+  animalFields?: CertificateField[];
   body: CertificateBodyBlock[];
 }
+
+const SPECIES_OPTIONS = ['Cattle', 'Buffalo', 'Sheep', 'Goat', 'Dog', 'Cat', 'Horse', 'Pig', 'Poultry'];
+
+const HEALTH_ANIMAL_FIELDS: CertificateField[] = [
+  { id: 'species', label: 'Type of animal', type: 'select', options: SPECIES_OPTIONS },
+  { id: 'breed', label: 'Breed' },
+  { id: 'age', label: 'Age (years)' },
+  { id: 'lactations', label: 'No. of lactations' },
+  { id: 'milkYield', label: 'Avg. milk yield (litres/day)' },
+  { id: 'tagNo', label: 'Animal tag no.' },
+  { id: 'calfPresent', label: 'Calf present (Yes/No, M/F)' },
+  { id: 'height', label: 'Height (cms)' },
+  { id: 'length', label: 'Length (cms)' },
+  { id: 'hornTip', label: 'Tip of horns (cms)' },
+  { id: 'hornBase', label: 'Base of horns (cms)' },
+  { id: 'hornLengthRight', label: 'Horn length — right (cms)' },
+  { id: 'hornLengthLeft', label: 'Horn length — left (cms)' },
+  { id: 'tailLength', label: 'Tail length (cms)' },
+  { id: 'tailSwitch', label: 'Switch of the tail' },
+  { id: 'price', label: 'Present market price (₹)' },
+];
 
 const ANIMAL_FIELDS: CertificateField[] = [
   { id: 'owner', label: "Owner's name", required: true },
@@ -48,46 +74,34 @@ const TEMPLATES: SeedTemplate[] = [
   {
     key: 'health',
     name: 'Health certificate',
-    titleEn: 'Health Certificate',
-    titleTe: 'ఆరోగ్య ధృవీకరణ పత్రం',
+    titleEn: 'Health and Valuation Certificate',
+    titleTe: 'ఆరోగ్య మరియు విలువ ధృవీకరణ పత్రం',
     numberPrefix: 'HC',
     fields: [
-      ...ANIMAL_FIELDS,
-      {
-        id: 'vacc',
-        label: 'Vaccinations with dates',
-        type: 'textarea',
-        full: true,
-        placeholder: 'FMD – 14 Jul 2026; HS – 02 Jun 2026',
-      },
-      {
-        id: 'purpose',
-        label: 'Fit for',
-        type: 'select',
-        options: ['Transport', 'Sale', 'Show / exhibition', 'Insurance', 'Travel with owner'],
-      },
-      { id: 'dest', label: 'Destination (if transport)' },
+      { id: 'owner', label: "Owner's name", required: true },
+      { id: 'guardian', label: 'S/o. / W/o.' },
+      { id: 'village', label: 'Village' },
+      { id: 'mandal', label: 'Mandal' },
       { id: 'examDate', label: 'Date of examination', type: 'date' },
-      { id: 'remarks', label: 'Remarks', type: 'textarea', full: true },
     ],
+    animalFields: HEALTH_ANIMAL_FIELDS,
     body: [
       {
         type: 'paragraph',
-        text: 'Certified that I have personally examined the animal described below, belonging to Sri/Smt. {{owner}} of {{addr}}, on {{examDate|date}}. On clinical examination it was found free from symptoms of infectious and contagious disease, and is fit for {{purpose|lower}}{{#if dest}} to {{dest}}{{/if}}.',
+        text: 'Certified that the animal(s) described below belong(s) to Sri/Smt. {{owner}}{{#if guardian}}, S/o. / W/o. {{guardian}}{{/if}} of {{village}}, {{mandal}} Mandal, presented on {{examDate|date}} for the purpose of health and valuation certification.',
       },
       {
-        type: 'table',
-        rows: [
-          { label: 'Species', field: 'species' },
-          { label: 'Breed', field: 'breed' },
-          { label: 'Sex', field: 'sex' },
-          { label: 'Age', field: 'age' },
-          { label: 'Ear tag / microchip no.', field: 'tag' },
-          { label: 'Colour and identification marks', field: 'colour' },
-          { label: 'Vaccinations', field: 'vacc' },
-        ],
+        type: 'heading',
+        text: 'Particulars and description of the animal(s)',
       },
-      { type: 'paragraph', text: '{{#if remarks}}<b>Remarks:</b> {{remarks}}{{/if}}' },
+      {
+        type: 'animal-table',
+        rows: HEALTH_ANIMAL_FIELDS.map((f) => ({ label: f.label, field: f.id })),
+      },
+      {
+        type: 'paragraph',
+        text: 'Certified that the health of the above animal(s) is/are in good condition at the time of examination.',
+      },
     ],
   },
   {

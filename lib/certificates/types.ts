@@ -40,6 +40,11 @@ export type CertificateBodyBlock =
         /** Applied to each field before joining; only really meaningful for a single-field row. */
         filter?: 'date' | 'datetime' | 'currency' | 'words';
       }>;
+    }
+  | {
+      /** One or more animals side by side as columns, each row a particular (e.g. breed, age, tag no.) — matches the real Health Certificate's layout. */
+      type: 'animal-table';
+      rows: Array<{ label: string; field: string }>;
     };
 
 export interface CertificateTemplate {
@@ -50,6 +55,8 @@ export interface CertificateTemplate {
   titleTe: string;
   numberPrefix: string;
   fields: CertificateField[];
+  /** Per-animal particulars, repeated once per animal on the certificate (see 'animal-table'). Absent/empty for single-subject certificate types. */
+  animalFields?: CertificateField[];
   body: CertificateBodyBlock[];
   published: boolean;
 }
@@ -58,6 +65,8 @@ export interface Certificate {
   id: string;
   templateId: string;
   data: CertificateData;
+  /** One entry per animal, keyed by the template's animalFields ids. Empty/absent when the template has no animalFields. */
+  animals?: CertificateData[];
   number: string | null;
   status: CertificateStatus;
   cancelledReason: string | null;

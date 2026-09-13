@@ -21,9 +21,20 @@ interface Props {
   templates: Array<{ id: string; key: string; name: string }>;
   profile: ProfileRow | null;
   initialData: CertificateData;
+  initialAnimals: CertificateData[];
   certificateId: string | null;
   status: CertificateStatus;
   number: string | null;
+}
+
+const MAX_ANIMALS = 20;
+
+function blankAnimal(fields: CertificateField[]): CertificateData {
+  const animal: CertificateData = {};
+  for (const field of fields) {
+    animal[field.id] = field.type === 'select' && field.options?.length ? field.options[0] : '';
+  }
+  return animal;
 }
 
 type ProfileState = {
@@ -40,6 +51,7 @@ export default function CertificateBuilder({
   templates,
   profile,
   initialData,
+  initialAnimals,
   certificateId: initialCertificateId,
   status: initialStatus,
   number: initialNumber,
@@ -63,6 +75,11 @@ export default function CertificateBuilder({
       }
     }
     return withDefaults;
+  });
+  const [animals, setAnimals] = useState<CertificateData[]>(() => {
+    if (initialAnimals.length) return initialAnimals;
+    // Start with one blank animal so the "Animals" section isn't empty on a fresh certificate.
+    return template.animalFields?.length ? [blankAnimal(template.animalFields)] : [];
   });
   const [certificateId, setCertificateId] = useState(initialCertificateId);
   const [status, setStatus] = useState<CertificateStatus>(initialStatus);
@@ -93,9 +110,22 @@ export default function CertificateBuilder({
     setProfileState((prev) => ({ ...prev, [id]: value }));
     setDirty(true);
   }
+  function updateAnimalField(index: number, fieldId: string, value: string) {
+    setAnimals((prev) => prev.map((animal, i) => (i === index ? { ...animal, [fieldId]: value } : animal)));
+    setDirty(true);
+  }
+  function addAnimal() {
+    if (!template.animalFields?.length || animals.length >= MAX_ANIMALS) return;
+    setAnimals((prev) => [...prev, blankAnimal(template.animalFields!)]);
+    setDirty(true);
+  }
+  function removeAnimal(index: number) {
+    setAnimals((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+    setDirty(true);
+  }
 
   async function persistDraft(): Promise<Certificate> {
-    const cert = await saveDraftCertificate({ certificateId, templateId: template.id, data, profile: profileState });
+    const cert = await saveDraftCertificate({ certificateId, templateId: template.id, data, animals, profile: profileState });
     setCertificateId(cert.id);
     setStatus(cert.status);
     setDirty(false);
@@ -283,6 +313,37 @@ export default function CertificateBuilder({
               />
             ))}
           </fieldset>
+
+          {template.animalFields && template.animalFields.length > 0 && (
+            <div className="animals-section">
+              <legend>Animals ({animals.length})</legend>
+              {animals.map((animal, index) => (
+                <fieldset className="animal-fieldset" disabled={issued} key={index}>
+                  <legend className="animal-legend">
+                    Animal {index + 1}
+                    {!issued && animals.length > 1 && (
+                      <button type="button" className="linkbtn" onClick={() => removeAnimal(index)}>
+                        Remove
+                      </button>
+                    )}
+                  </legend>
+                  {template.animalFields!.map((field) => (
+                    <FieldInput
+                      key={field.id}
+                      field={field}
+                      value={animal[field.id] ?? ''}
+                      onChange={(v) => updateAnimalField(index, field.id, v)}
+                    />
+                  ))}
+                </fieldset>
+              ))}
+              {!issued && animals.length < MAX_ANIMALS && (
+                <button type="button" className="button-ghost button-sm" onClick={addAnimal}>
+                  + Add another animal
+                </button>
+              )}
+            </div>
+          )}
         </form>
 
         <div className="b-preview">
@@ -292,6 +353,7 @@ export default function CertificateBuilder({
               titleTe={template.titleTe}
               body={template.body}
               data={data}
+              animals={animals}
               profile={{
                 vetName: profileState.fullName,
                 designation: profileState.designation,

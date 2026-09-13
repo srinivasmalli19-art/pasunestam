@@ -17,11 +17,13 @@ const vetProfileSchema = z.object({
 });
 
 const certificateDataSchema = z.record(z.string(), z.string().max(5000));
+const animalsSchema = z.array(certificateDataSchema).max(20, 'A certificate can list at most 20 animals.');
 
 export interface SaveDraftInput {
   certificateId: string | null;
   templateId: string;
   data: CertificateData;
+  animals: CertificateData[];
   profile: z.infer<typeof vetProfileSchema>;
 }
 
@@ -37,6 +39,7 @@ function toCertificate(id: string, data: FirebaseFirestore.DocumentData): Certif
 export async function saveDraftCertificate(input: SaveDraftInput): Promise<Certificate> {
   const profile = vetProfileSchema.parse(input.profile);
   const data = certificateDataSchema.parse(input.data);
+  const animals = animalsSchema.parse(input.animals ?? []);
 
   const user = await getCurrentUser();
   if (!user) throw new Error('Not signed in.');
@@ -53,7 +56,7 @@ export async function saveDraftCertificate(input: SaveDraftInput): Promise<Certi
     if (existing.createdBy !== user.uid) throw new Error('Not permitted to edit this certificate.');
     if (existing.status !== 'draft') throw new Error('This certificate is no longer a draft.');
 
-    await ref.update({ data, updatedAt: now });
+    await ref.update({ data, animals, updatedAt: now });
     const updated = await ref.get();
     return toCertificate(updated.id, updated.data()!);
   }
@@ -61,6 +64,7 @@ export async function saveDraftCertificate(input: SaveDraftInput): Promise<Certi
   const ref = await adminDb.collection(CERTIFICATES).add({
     templateId: input.templateId,
     data,
+    animals,
     number: null,
     status: 'draft',
     cancelledReason: null,

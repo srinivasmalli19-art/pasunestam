@@ -22,6 +22,7 @@ export default async function NewCertificatePage(props: PageProps<'/desk/certifi
       templates={templates}
       profile={profile}
       initialData={draft?.data ?? {}}
+      initialAnimals={draft?.animals ?? []}
       certificateId={draft?.id ?? null}
       status={draft?.status ?? 'draft'}
       number={draft?.number ?? null}

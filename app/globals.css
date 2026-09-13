@@ -245,6 +245,18 @@ input[type='submit'] {
   border-color: var(--charcoal);
 }
 
+.linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  font: 600 0.85rem var(--font-body);
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .muted {
   color: var(--muted);
 }
