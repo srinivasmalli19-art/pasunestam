@@ -73,15 +73,6 @@
   margin-bottom: 12px;
   padding: 0;
 }
-.fld {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.83rem;
-  font-weight: 600;
-  color: #59626e;
-  min-width: 0;
-}
 .fld.full {
   grid-column: 1 / -1;
 }

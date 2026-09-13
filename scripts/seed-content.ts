@@ -9,10 +9,12 @@
 import type { Product } from '../lib/prices/types';
 import type { Article } from '../lib/news/types';
 import type { Admission } from '../lib/admissions/types';
+import type { Case } from '../lib/cases/types';
 
 type SeedProduct = Omit<Product, 'id'>;
 type SeedArticle = Omit<Article, 'id'>;
 type SeedAdmission = Omit<Admission, 'id'>;
+type SeedCase = Omit<Case, 'id'>;
 
 try {
   process.loadEnvFile('.env.local');
@@ -191,10 +193,50 @@ async function upsertByField<T extends Record<string, unknown>>(
   }
 }
 
+const CASES: SeedCase[] = [
+  {
+    title: 'Traumatic reticulopericarditis in a crossbred HF cow: rumenotomy and recovery',
+    species: 'Cattle',
+    body: 'Presented with reduced appetite and grunting on movement; wire-piece foreign body confirmed and removed via rumenotomy, with full recovery over the following two weeks.',
+    submittedBy: 'seed',
+    submitterName: 'Dr. M. Lakshmi, Veterinary Hospital',
+    status: 'published',
+    createdAt: '2026-09-01T00:00:00.000Z',
+  },
+  {
+    title: 'Dystocia due to schistosomus reflexus in a Murrah buffalo',
+    species: 'Buffalo',
+    body: 'A rare fetal malformation causing dystocia at term; managed via fetotomy after manual correction attempts failed, dam recovered without complication.',
+    submittedBy: 'seed',
+    submitterName: 'Dr. R. Prasad, Veterinary Dispensary',
+    status: 'published',
+    createdAt: '2026-09-03T00:00:00.000Z',
+  },
+  {
+    title: 'Canine parvoviral enteritis: fluid therapy outcomes in 12 pups',
+    species: 'Dog',
+    body: 'A litter outbreak treated with aggressive IV fluid therapy and supportive care; 10 of 12 pups survived to full recovery.',
+    submittedBy: 'seed',
+    submitterName: 'Dr. S. Anjali, Pet Clinic',
+    status: 'published',
+    createdAt: '2026-09-05T00:00:00.000Z',
+  },
+  {
+    title: 'Infectious bursal disease outbreak investigation on a broiler farm',
+    species: 'Poultry',
+    body: 'Sudden mortality spike in a 4-week broiler flock; lab-confirmed IBD, with biosecurity and vaccination-schedule recommendations for the farm.',
+    submittedBy: 'seed',
+    submitterName: 'Dr. T. Naresh, Poultry Diagnostic Lab',
+    status: 'published',
+    createdAt: '2026-09-07T00:00:00.000Z',
+  },
+];
+
 async function main() {
   await upsertByField('products', PRODUCTS, 'name');
   await upsertByField('articles', ARTICLES, 'title');
   await upsertByField('admissions', ADMISSIONS, 'title');
+  await upsertByField('cases', CASES, 'title');
   console.log('Done.');
 }
 

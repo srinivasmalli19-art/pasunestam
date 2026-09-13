@@ -120,6 +120,34 @@ input[type='submit'] {
   color: var(--charcoal);
 }
 
+/* Same look as .field under a shorter name — the certificate builder and
+   any modal form (case submission, scheme application) use this one. */
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  font-size: 0.83rem;
+  color: var(--muted);
+}
+.fld input,
+.fld select,
+.fld textarea {
+  font: 500 0.95rem var(--font-body);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 11px;
+  min-height: var(--touch-target);
+  color: var(--charcoal);
+  background: #fff;
+  width: 100%;
+}
+.fld textarea {
+  min-height: 68px;
+  resize: vertical;
+}
+
 .error-text {
   background: #f6ddd6;
   color: #9a3320;
