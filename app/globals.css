@@ -5,6 +5,8 @@
   --turmeric: #ebaa2c; /* monthly return */
   --paper: #f6f7f3; /* page background */
   --charcoal: #1c2127; /* body text */
+  --muted: #59626e; /* secondary text */
+  --line: #dce0d6; /* borders and dividers */
 
   --input-green: #eaf5ec; /* "type here" boxes */
   --input-green-border: #2e6a3c;

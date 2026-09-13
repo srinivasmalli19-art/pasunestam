@@ -35,10 +35,43 @@ export async function getVetProfile() {
   return getProfile(user.uid);
 }
 
-export async function getCertificateDraft(id: string): Promise<Certificate | null> {
+/**
+ * Loads a certificate (draft or issued) for the builder route to show —
+ * read-only once issued, editable while a draft. Scoped to the signed-in
+ * vet's own certificates; anyone else's id just falls back to a blank form
+ * rather than leaking another vet's data.
+ */
+export async function getOwnCertificateById(id: string): Promise<Certificate | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
   const snap = await adminDb.collection(CERTIFICATES).doc(id).get();
   if (!snap.exists) return null;
-  const data = snap.data();
-  if (data?.status !== 'draft') return null;
+  const data = snap.data()!;
+  if (data.createdBy !== user.uid) return null;
   return { id: snap.id, ...data } as Certificate;
+}
+
+/** The vet's own issued certificates, most recent first — for the desk's "Recently issued" panel. */
+export async function getRecentIssuedCertificates(
+  uid: string,
+  max = 4
+): Promise<Array<Certificate & { templateKey: string; templateName: string }>> {
+  const [certsSnap, templatesSnap] = await Promise.all([
+    // Single equality filter — no composite index needed. A vet's own
+    // certificate count is small enough to sort/filter/limit in code.
+    adminDb.collection(CERTIFICATES).where('createdBy', '==', uid).get(),
+    adminDb.collection(TEMPLATES).get(),
+  ]);
+  const templateById = new Map(templatesSnap.docs.map((d) => [d.id, d.data()]));
+
+  return certsSnap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Certificate)
+    .filter((c) => c.status === 'issued')
+    .sort((a, b) => (b.issuedAt ?? '').localeCompare(a.issuedAt ?? ''))
+    .slice(0, max)
+    .map((c) => ({
+      ...c,
+      templateKey: (templateById.get(c.templateId)?.key as string) ?? '',
+      templateName: (templateById.get(c.templateId)?.name as string) ?? 'Certificate',
+    }));
 }

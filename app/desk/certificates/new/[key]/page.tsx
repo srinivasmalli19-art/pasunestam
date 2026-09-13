@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import CertificateBuilder from '@/components/certificates/CertificateBuilder';
-import { getCertificateDraft, getPublishedTemplates, getTemplateByKey, getVetProfile } from '@/lib/certificates/queries';
+import { getOwnCertificateById, getPublishedTemplates, getTemplateByKey, getVetProfile } from '@/lib/certificates/queries';
 
 export default async function NewCertificatePage(props: PageProps<'/desk/certificates/new/[key]'>) {
   const { key } = await props.params;
@@ -14,7 +14,7 @@ export default async function NewCertificatePage(props: PageProps<'/desk/certifi
   ]);
   if (!template) notFound();
 
-  const draft = draftId ? await getCertificateDraft(draftId) : null;
+  const draft = draftId ? await getOwnCertificateById(draftId) : null;
 
   return (
     <CertificateBuilder
