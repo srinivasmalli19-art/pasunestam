@@ -9,15 +9,14 @@
 // wording worked out in pasunestam.html. Replace title/body text below once
 // the real documents are available.
 
+import type { CertificateBodyBlock, CertificateField } from '../lib/certificates/types';
+
 try {
   process.loadEnvFile('.env.local');
 } catch {
   // No .env.local (e.g. running purely against the emulator with env vars
   // already exported in the shell) — that's fine, keep going.
 }
-
-import { adminDb } from '../lib/firebase/admin';
-import type { CertificateBodyBlock, CertificateField } from '../lib/certificates/types';
 
 interface SeedTemplate {
   key: string;
@@ -178,6 +177,11 @@ const TEMPLATES: SeedTemplate[] = [
 ];
 
 async function main() {
+  // A dynamic import, not a static one: static `import`s are hoisted above
+  // all other top-level code (including the loadEnvFile call above), which
+  // would make lib/firebase/admin.ts initialize before .env.local is loaded.
+  const { adminDb } = await import('../lib/firebase/admin');
+
   const now = new Date().toISOString();
   for (const template of TEMPLATES) {
     const existing = await adminDb.collection('certificateTemplates').where('key', '==', template.key).limit(1).get();
