@@ -22,12 +22,18 @@ interface Props {
   profile: ProfileRow | null;
   initialData: CertificateData;
   initialAnimals: CertificateData[];
+  /** Only meaningful when template.key === 'health' — whether to show the price row/field ("Health certificate") or not ("Health and valuation certificate"). */
+  initialVariant?: 'full' | 'health-only';
   certificateId: string | null;
   status: CertificateStatus;
   number: string | null;
 }
 
 const MAX_ANIMALS = 20;
+// The one field that distinguishes a pure Health Certificate from the
+// combined Health and Valuation Certificate — see the dropdown in the
+// builder header.
+const VALUATION_ONLY_FIELD = 'price';
 
 function blankAnimal(fields: CertificateField[]): CertificateData {
   const animal: CertificateData = {};
@@ -52,12 +58,14 @@ export default function CertificateBuilder({
   profile,
   initialData,
   initialAnimals,
+  initialVariant,
   certificateId: initialCertificateId,
   status: initialStatus,
   number: initialNumber,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [healthVariant, setHealthVariant] = useState<'full' | 'health-only'>(initialVariant ?? 'full');
 
   const [profileState, setProfileState] = useState<ProfileState>({
     fullName: profile?.fullName ?? '',
@@ -121,6 +129,31 @@ export default function CertificateBuilder({
   }
   function removeAnimal(index: number) {
     setAnimals((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+    setDirty(true);
+  }
+
+  const isHealthOnly = template.key === 'health' && healthVariant === 'health-only';
+  const effectiveAnimalFields = isHealthOnly
+    ? template.animalFields?.filter((f) => f.id !== VALUATION_ONLY_FIELD)
+    : template.animalFields;
+  const effectiveBody = isHealthOnly
+    ? template.body.map((block) =>
+        block.type === 'animal-table' ? { ...block, rows: block.rows.filter((r) => r.field !== VALUATION_ONLY_FIELD) } : block
+      )
+    : template.body;
+  const effectiveTitleEn = isHealthOnly ? 'Health Certificate' : template.titleEn;
+  const effectiveTitleTe = isHealthOnly ? 'ఆరోగ్య ధృవీకరణ పత్రం' : template.titleTe;
+
+  function handleVariantChange(value: string) {
+    if (value === 'valuation') {
+      if (template.key !== 'valuation') goTo('/desk/certificates/new/valuation');
+      return;
+    }
+    if (template.key !== 'health') {
+      goTo(`/desk/certificates/new/health?variant=${value}`);
+      return;
+    }
+    setHealthVariant(value === 'health-only' ? 'health-only' : 'full');
     setDirty(true);
   }
 
@@ -212,16 +245,28 @@ export default function CertificateBuilder({
         </button>
         <h2 style={{ fontSize: '1.35rem', margin: 0 }}>{template.name}</h2>
         <div className="b-tabs">
-          {templates.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              aria-current={t.key === template.key}
-              onClick={() => t.key !== template.key && goTo(`/desk/certificates/new/${t.key}`)}
-            >
-              {t.name}
-            </button>
-          ))}
+          <select
+            className="b-variant-select"
+            aria-label="Certificate type"
+            value={template.key === 'valuation' ? 'valuation' : healthVariant}
+            onChange={(e) => handleVariantChange(e.target.value)}
+          >
+            <option value="health-only">Health certificate</option>
+            <option value="full">Health and valuation certificate</option>
+            <option value="valuation">Valuation certificate</option>
+          </select>
+          {templates
+            .filter((t) => t.key !== 'health' && t.key !== 'valuation')
+            .map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                aria-current={t.key === template.key}
+                onClick={() => t.key !== template.key && goTo(`/desk/certificates/new/${t.key}`)}
+              >
+                {t.name}
+              </button>
+            ))}
         </div>
         <div className="b-actions">
           <button
@@ -314,7 +359,7 @@ export default function CertificateBuilder({
             ))}
           </fieldset>
 
-          {template.animalFields && template.animalFields.length > 0 && (
+          {effectiveAnimalFields && effectiveAnimalFields.length > 0 && (
             <div className="animals-section">
               <legend>Animals ({animals.length})</legend>
               {animals.map((animal, index) => (
@@ -327,7 +372,7 @@ export default function CertificateBuilder({
                       </button>
                     )}
                   </legend>
-                  {template.animalFields!.map((field) => (
+                  {effectiveAnimalFields.map((field) => (
                     <FieldInput
                       key={field.id}
                       field={field}
@@ -349,9 +394,9 @@ export default function CertificateBuilder({
         <div className="b-preview">
           <div className="cert-print-area">
             <CertificatePreview
-              titleEn={template.titleEn}
-              titleTe={template.titleTe}
-              body={template.body}
+              titleEn={effectiveTitleEn}
+              titleTe={effectiveTitleTe}
+              body={effectiveBody}
               data={data}
               animals={animals}
               profile={{

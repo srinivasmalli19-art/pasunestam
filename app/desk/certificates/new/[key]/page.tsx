@@ -6,6 +6,7 @@ export default async function NewCertificatePage(props: PageProps<'/desk/certifi
   const { key } = await props.params;
   const searchParams = await props.searchParams;
   const draftId = typeof searchParams.draft === 'string' ? searchParams.draft : null;
+  const initialVariant = searchParams.variant === 'health-only' ? 'health-only' : 'full';
 
   const [template, templates, profile] = await Promise.all([
     getTemplateByKey(key),
@@ -23,6 +24,7 @@ export default async function NewCertificatePage(props: PageProps<'/desk/certifi
       profile={profile}
       initialData={draft?.data ?? {}}
       initialAnimals={draft?.animals ?? []}
+      initialVariant={initialVariant}
       certificateId={draft?.id ?? null}
       status={draft?.status ?? 'draft'}
       number={draft?.number ?? null}
