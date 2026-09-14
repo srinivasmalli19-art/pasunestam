@@ -530,7 +530,6 @@ export default function CertificateBuilder({
                 district: profileState.district,
               }}
               number={number}
-              issued={issued}
             />
           </div>
         </div>

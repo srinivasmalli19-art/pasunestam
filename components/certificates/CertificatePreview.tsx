@@ -9,10 +9,9 @@ interface Props {
   animals?: CertificateData[];
   profile: VetProfile;
   number: string | null;
-  issued: boolean;
 }
 
-export default function CertificatePreview({ titleEn, titleTe, body, data, animals = [], profile, number, issued }: Props) {
+export default function CertificatePreview({ titleEn, titleTe, body, data, animals = [], profile, number }: Props) {
   const bodyHtml = renderBody(body, data, animals);
   const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -39,14 +38,6 @@ export default function CertificatePreview({ titleEn, titleTe, body, data, anima
         <br />
         Reg. no. {profile.registrationNo || <span className="blank" />}
       </div>
-      {issued && (
-        <div className="stamp issued">
-          <div>
-            <b>ISSUED</b>
-            {today}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
