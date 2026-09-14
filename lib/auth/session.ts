@@ -1,6 +1,8 @@
+import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { adminAuth } from '@/lib/firebase/admin';
 import { SESSION_COOKIE_NAME } from '@/lib/firebase/proxy';
+import { safeNext } from '@/lib/safe-next';
 
 export interface CurrentUser {
   uid: string;
@@ -9,9 +11,12 @@ export interface CurrentUser {
 }
 
 /**
- * The direct replacement for the old `supabase.auth.getUser()` call: reads
- * and verifies the session cookie independently of proxy.ts's own check,
- * since Next's docs recommend Proxy not be the sole authorization layer.
+ * The real, cryptographic session check — proxy.ts only checks that a
+ * session cookie exists (an "optimistic" check, since verifying it there
+ * needs firebase-admin, which doesn't load in Vercel's Proxy bundle; see
+ * lib/firebase/proxy.ts). This is that real check, safe to call from any
+ * Server Component/Action, which run as regular server-rendered requests
+ * rather than the Proxy bundle.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const cookieStore = await cookies();
@@ -24,6 +29,20 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * For the top of a protected area (e.g. app/desk/layout.tsx): does the real
+ * verification and redirects to /login if the cookie is missing, forged or
+ * expired — proxy.ts's cookie-presence check alone doesn't catch those.
+ */
+export async function requireUser(nextPath?: string): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user) {
+    const next = nextPath ? safeNext(nextPath) : undefined;
+    redirect(next ? `/login?next=${encodeURIComponent(next)}` : '/login');
+  }
+  return user;
 }
 
 const SESSION_EXPIRES_IN_MS = 14 * 24 * 60 * 60 * 1000; // Firebase's hard maximum for session cookies.

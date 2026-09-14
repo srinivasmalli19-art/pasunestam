@@ -1,10 +1,10 @@
 import CertificatesList from '@/components/certificates/CertificatesList';
-import { getCurrentUser } from '@/lib/auth/session';
+import { requireUser } from '@/lib/auth/session';
 import { getMyCertificates } from '@/lib/certificates/queries';
 
 export default async function SavedCertificatesPage() {
-  const user = await getCurrentUser();
-  const certificates = await getMyCertificates(user!.uid);
+  const user = await requireUser('/desk/certificates');
+  const certificates = await getMyCertificates(user.uid);
 
   const rows = certificates.map((c) => ({
     id: c.id,
