@@ -316,22 +316,102 @@
   }
 }
 
-/* Print only the certificate paper, nothing else on the page. */
+/* Print only the certificate paper, nothing else on the page, compacted to
+   reliably fit one A4 sheet regardless of the printer/PDF engine's own
+   margins — the on-screen editing size (larger, more readable) is untouched.
+
+   Hides everything but the certificate paper with display:none rather than
+   the more common visibility:hidden trick: visibility:hidden keeps hidden
+   elements' layout height, and this page's own left-hand form column is
+   tall enough (many fields, overflow:auto that print doesn't clip) that it
+   was silently padding the printout with extra blank pages. display:none
+   actually removes that height instead of just hiding it. */
+@page {
+  size: A4;
+  margin: 10mm;
+}
 @media print {
-  body * {
-    visibility: hidden;
+  header.top,
+  .b-head,
+  .b-form,
+  .builder-error,
+  .builder-note {
+    display: none !important;
   }
-  .cert-print-area,
-  .cert-print-area * {
-    visibility: visible;
+  .builder {
+    display: block;
+    min-height: 0;
   }
-  .cert-print-area {
-    position: absolute;
-    inset: 0;
+  .b-body {
+    display: block;
+  }
+  .b-preview {
+    padding: 0;
+    overflow: visible;
     background: #fff;
   }
   .cert {
     box-shadow: none;
     margin: 0;
+    min-height: 0;
+    padding: 20px 24px 84px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .cert::before {
+    inset: 7px;
+  }
+  .c-org {
+    font-size: 0.95rem;
+  }
+  .c-head {
+    padding-bottom: 8px;
+  }
+  .c-title {
+    font-size: 1.1rem;
+    margin-top: 12px;
+  }
+  .c-te {
+    font-size: 0.76rem;
+    margin-top: 3px;
+  }
+  .c-meta {
+    margin: 10px 0 8px;
+    font-size: 0.8rem;
+  }
+  .cert p {
+    margin: 0 0 6px;
+  }
+  .cert h5 {
+    margin: 8px 0 3px;
+    font-size: 0.8rem;
+  }
+  .c-table,
+  .animal-table {
+    font-size: 0.78rem;
+    margin: 6px 0 8px;
+  }
+  .c-table td,
+  .animal-table th,
+  .animal-table td {
+    padding: 3px 6px;
+  }
+  .sign {
+    right: 24px;
+    bottom: 26px;
+    min-width: 200px;
+    font-size: 0.76rem;
+    padding-top: 4px;
+  }
+  .stamp {
+    left: 24px;
+    bottom: 18px;
+    width: 88px;
+    height: 88px;
+    font-size: 0.58rem;
+    padding: 6px;
+  }
+  .stamp b {
+    font-size: 0.95rem;
   }
 }
