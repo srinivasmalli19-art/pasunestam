@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import CertificatePreview from './CertificatePreview';
-import { saveDraftCertificate, issueCertificate } from '@/lib/certificates/actions';
+import { saveDraftCertificate, issueCertificate, issueCertificateDirect } from '@/lib/certificates/actions';
 import type { Certificate, CertificateData, CertificateField, CertificateStatus, CertificateTemplate } from '@/lib/certificates/types';
 import './certificate-builder.css';
 
@@ -20,6 +20,8 @@ interface Props {
   template: CertificateTemplate;
   templates: Array<{ id: string; key: string; name: string }>;
   profile: ProfileRow | null;
+  /** Whether saving a draft can proceed immediately, or needs a sign-in detour first — see handleSave. */
+  signedIn: boolean;
   initialData: CertificateData;
   initialAnimals: CertificateData[];
   /** Only meaningful when template.key === 'health' — whether to show the price row/field ("Health certificate") or not ("Health and valuation certificate"). */
@@ -31,9 +33,34 @@ interface Props {
 
 const MAX_ANIMALS = 20;
 // The one field that distinguishes a pure Health Certificate from the
-// combined Health and Valuation Certificate — see the dropdown in the
+// combined Health and Valuation Certificate — see the type switcher in the
 // builder header.
 const VALUATION_ONLY_FIELD = 'price';
+
+// "Save draft" needs an account; filling, previewing, printing and issuing
+// don't. Rather than lose what a signed-out vet typed when they're sent off
+// to sign in, it's stashed here first and restored (then auto-saved) once
+// they're back — see the mount effect below and requestSignInToSave.
+const SAVE_STASH_PREFIX = 'pasunestam:pending-save:';
+function stashKey(templateKey: string): string {
+  return `${SAVE_STASH_PREFIX}${templateKey}`;
+}
+interface SaveStash {
+  data: CertificateData;
+  animals: CertificateData[];
+  profileState: ProfileState;
+  healthVariant: 'full' | 'health-only';
+  pendingHref: string | null;
+}
+/** A pure read (no removal) — safe to call from a useState initializer, including under Strict Mode's double-invoke. */
+function peekStash(templateKey: string): SaveStash | null {
+  try {
+    const raw = sessionStorage.getItem(stashKey(templateKey));
+    return raw ? (JSON.parse(raw) as SaveStash) : null;
+  } catch {
+    return null;
+  }
+}
 
 function blankAnimal(fields: CertificateField[]): CertificateData {
   const animal: CertificateData = {};
@@ -56,6 +83,7 @@ export default function CertificateBuilder({
   template,
   templates,
   profile,
+  signedIn,
   initialData,
   initialAnimals,
   initialVariant,
@@ -65,18 +93,32 @@ export default function CertificateBuilder({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [healthVariant, setHealthVariant] = useState<'full' | 'health-only'>(initialVariant ?? 'full');
 
-  const [profileState, setProfileState] = useState<ProfileState>({
-    fullName: profile?.fullName ?? '',
-    designation: profile?.designation ?? 'Veterinary Assistant Surgeon',
-    registrationNo: profile?.registrationNo ?? '',
-    institution: profile?.institution ?? '',
-    mandal: profile?.mandal ?? '',
-    district: profile?.district ?? '',
-  });
+  // A certificate stashed by requestSignInToSave right before a sign-in
+  // detour, picked up again on the fresh mount that follows /login's
+  // redirect back here — only meaningful when actually signed in now, so a
+  // signed-out visit never silently resurrects an abandoned attempt. A pure
+  // read (no removal yet), so it's safe under Strict Mode's double-invoke.
+  const [stash] = useState<SaveStash | null>(() =>
+    signedIn && !initialCertificateId ? peekStash(template.key) : null
+  );
+
+  const [healthVariant, setHealthVariant] = useState<'full' | 'health-only'>(
+    stash?.healthVariant ?? initialVariant ?? 'full'
+  );
+
+  const [profileState, setProfileState] = useState<ProfileState>(
+    stash?.profileState ?? {
+      fullName: profile?.fullName ?? '',
+      designation: profile?.designation ?? 'Veterinary Assistant Surgeon',
+      registrationNo: profile?.registrationNo ?? '',
+      institution: profile?.institution ?? '',
+      mandal: profile?.mandal ?? '',
+      district: profile?.district ?? '',
+    }
+  );
   const [data, setData] = useState<CertificateData>(() => {
-    const withDefaults: CertificateData = { ...initialData };
+    const withDefaults: CertificateData = { ...(stash?.data ?? initialData) };
     for (const field of template.fields) {
       if (withDefaults[field.id] === undefined) {
         withDefaults[field.id] = field.type === 'select' && field.options?.length ? field.options[0] : '';
@@ -85,6 +127,7 @@ export default function CertificateBuilder({
     return withDefaults;
   });
   const [animals, setAnimals] = useState<CertificateData[]>(() => {
+    if (stash?.animals.length) return stash.animals;
     if (initialAnimals.length) return initialAnimals;
     // Start with one blank animal so the "Animals" section isn't empty on a fresh certificate.
     return template.animalFields?.length ? [blankAnimal(template.animalFields)] : [];
@@ -96,6 +139,7 @@ export default function CertificateBuilder({
   const [error, setError] = useState('');
   const [dirty, setDirty] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [showAuthGate, setShowAuthGate] = useState(false);
 
   const issued = status === 'issued';
 
@@ -109,6 +153,41 @@ export default function CertificateBuilder({
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [dirty]);
+
+  // Finishes the save the vet originally asked for, now that `stash` (if
+  // any) has already seeded the form state above. Only a sessionStorage
+  // clear and an async save happen here — no direct setState in the
+  // effect's own body, since those already ran as part of the state
+  // initializers above.
+  useEffect(() => {
+    if (!stash) return;
+    try {
+      sessionStorage.removeItem(stashKey(template.key));
+    } catch {
+      /* ignore */
+    }
+    (async () => {
+      try {
+        const cert = await saveDraftCertificate({
+          certificateId: null,
+          templateId: template.id,
+          data: stash.data,
+          animals: stash.animals,
+          profile: stash.profileState,
+        });
+        setCertificateId(cert.id);
+        setStatus(cert.status);
+        setDirty(false);
+        setNote('Signed in and saved.');
+        router.replace(`/certificates/new/${template.key}?draft=${cert.id}`);
+        if (stash.pendingHref) router.push(stash.pendingHref);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Signed in, but could not save automatically — try Save draft again.');
+      }
+    })();
+    // Only ever meant to run once, right after mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function updateField(id: string, value: string) {
     setData((prev) => ({ ...prev, [id]: value }));
@@ -144,17 +223,42 @@ export default function CertificateBuilder({
   const effectiveTitleEn = isHealthOnly ? 'Health Certificate' : template.titleEn;
   const effectiveTitleTe = isHealthOnly ? 'ఆరోగ్య ధృవీకరణ పత్రం' : template.titleTe;
 
-  function handleVariantChange(value: string) {
-    if (value === 'valuation') {
-      if (template.key !== 'valuation') goTo('/desk/certificates/new/valuation');
+  function selectCertificateType(value: string) {
+    if (value === 'health-only' || value === 'full') {
+      if (template.key !== 'health') {
+        goTo(`/certificates/new/health?variant=${value}`);
+      } else {
+        setHealthVariant(value);
+        setDirty(true);
+      }
       return;
     }
-    if (template.key !== 'health') {
-      goTo(`/desk/certificates/new/health?variant=${value}`);
-      return;
+    if (value !== template.key) goTo(`/certificates/new/${value}`);
+  }
+
+  /** The URL for this certificate as currently being edited — never includes ?draft=, since nothing's saved yet by the time this is needed. */
+  function currentPath(): string {
+    const variant = template.key === 'health' ? `?variant=${healthVariant}` : '';
+    return `/certificates/new/${template.key}${variant}`;
+  }
+
+  function requestSignInToSave(afterHref: string | null) {
+    try {
+      const stash: SaveStash = { data, animals, profileState, healthVariant, pendingHref: afterHref };
+      sessionStorage.setItem(stashKey(template.key), JSON.stringify(stash));
+    } catch {
+      /* sessionStorage unavailable — sign-in still works, the typed details just won't survive the detour */
     }
-    setHealthVariant(value === 'health-only' ? 'health-only' : 'full');
-    setDirty(true);
+    setShowAuthGate(true);
+  }
+
+  function cancelAuthGate() {
+    try {
+      sessionStorage.removeItem(stashKey(template.key));
+    } catch {
+      /* ignore */
+    }
+    setShowAuthGate(false);
   }
 
   async function persistDraft(): Promise<Certificate> {
@@ -163,12 +267,16 @@ export default function CertificateBuilder({
     setStatus(cert.status);
     setDirty(false);
     if (!initialCertificateId) {
-      router.replace(`/desk/certificates/new/${template.key}?draft=${cert.id}`);
+      router.replace(`/certificates/new/${template.key}?draft=${cert.id}`);
     }
     return cert;
   }
 
   function handleSave() {
+    if (!signedIn) {
+      requestSignInToSave(null);
+      return;
+    }
     setError('');
     startTransition(async () => {
       try {
@@ -193,15 +301,19 @@ export default function CertificateBuilder({
     }
     startTransition(async () => {
       try {
-        const saved = await persistDraft();
-        const issuedCert = await issueCertificate(saved.id);
+        // Issuing doesn't need an account — a certificate with no saved
+        // draft yet is created and issued in one step; one that was already
+        // saved as a draft (only possible while signed in) is issued as before.
+        const issuedCert = certificateId
+          ? await issueCertificate((await persistDraft()).id)
+          : await issueCertificateDirect({ templateId: template.id, data, animals, profile: profileState });
         setCertificateId(issuedCert.id);
         setStatus(issuedCert.status);
         setNumber(issuedCert.number);
         setDirty(false);
         setNote(`${template.name} ${issuedCert.number} issued.`);
         if (!initialCertificateId) {
-          router.replace(`/desk/certificates/new/${template.key}?draft=${issuedCert.id}`);
+          router.replace(`/certificates/new/${template.key}?draft=${issuedCert.id}`);
         }
         setTimeout(() => window.print(), 400);
       } catch (e) {
@@ -224,6 +336,12 @@ export default function CertificateBuilder({
   }
 
   function saveAndGo() {
+    if (!signedIn) {
+      const afterHref = pendingHref;
+      setPendingHref(null);
+      requestSignInToSave(afterHref);
+      return;
+    }
     setError('');
     startTransition(async () => {
       try {
@@ -240,29 +358,33 @@ export default function CertificateBuilder({
   return (
     <div className="builder">
       <div className="b-head">
-        <button type="button" className="button-ghost button-sm" onClick={() => goTo('/desk')}>
+        <button type="button" className="button-ghost button-sm" onClick={() => goTo('/')}>
           Close
         </button>
         <h2 style={{ fontSize: '1.35rem', margin: 0 }}>{template.name}</h2>
-        <div className="b-tabs">
-          <select
-            className="b-variant-select"
-            aria-label="Certificate type"
-            value={template.key === 'valuation' ? 'valuation' : healthVariant}
-            onChange={(e) => handleVariantChange(e.target.value)}
+        <div className="b-tabs" role="group" aria-label="Certificate type">
+          <button
+            type="button"
+            aria-current={template.key === 'health' && healthVariant === 'health-only'}
+            onClick={() => selectCertificateType('health-only')}
           >
-            <option value="health-only">Health certificate</option>
-            <option value="full">Health and valuation certificate</option>
-            <option value="valuation">Valuation certificate</option>
-          </select>
+            Health certificate
+          </button>
+          <button
+            type="button"
+            aria-current={template.key === 'health' && healthVariant === 'full'}
+            onClick={() => selectCertificateType('full')}
+          >
+            Health and valuation certificate
+          </button>
           {templates
-            .filter((t) => t.key !== 'health' && t.key !== 'valuation')
+            .filter((t) => t.key !== 'health')
             .map((t) => (
               <button
                 key={t.key}
                 type="button"
                 aria-current={t.key === template.key}
-                onClick={() => t.key !== template.key && goTo(`/desk/certificates/new/${t.key}`)}
+                onClick={() => selectCertificateType(t.key)}
               >
                 {t.name}
               </button>
@@ -427,7 +549,38 @@ export default function CertificateBuilder({
                 Discard changes
               </button>
               <button type="button" className="button-primary button-sm" disabled={isPending} onClick={saveAndGo}>
-                Save and continue
+                {signedIn ? 'Save and continue' : 'Sign in to save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAuthGate && (
+        <div className="modal-bg" role="dialog" aria-modal="true" aria-labelledby="authgate-title">
+          <div className="modal">
+            <h3 id="authgate-title">Sign in to save</h3>
+            <p>
+              Sign in or create a free account to save this certificate to your desk — your filled-in details will
+              be kept. You can still fill, print or issue certificates without an account.
+            </p>
+            <div className="modal-actions">
+              <button type="button" className="button-ghost button-sm" onClick={cancelAuthGate}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button-ghost button-sm"
+                onClick={() => router.push(`/signup?next=${encodeURIComponent(currentPath())}`)}
+              >
+                Create account
+              </button>
+              <button
+                type="button"
+                className="button-primary button-sm"
+                onClick={() => router.push(`/login?next=${encodeURIComponent(currentPath())}`)}
+              >
+                Sign in
               </button>
             </div>
           </div>

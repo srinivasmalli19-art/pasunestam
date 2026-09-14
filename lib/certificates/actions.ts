@@ -75,9 +75,41 @@ export async function saveDraftCertificate(input: SaveDraftInput): Promise<Certi
     createdAt: now,
     updatedAt: now,
   });
-  revalidatePath('/desk');
+  revalidatePath('/');
   const created = await ref.get();
   return toCertificate(created.id, created.data()!);
+}
+
+type VetSnapshot = Certificate['vet'];
+
+/**
+ * The certificate-numbering step shared by issueCertificate (an existing
+ * draft) and issueCertificateDirect (create-and-issue in one step, no draft
+ * required — see below). One counter per template per year, incremented
+ * atomically inside the caller's transaction — the Firestore equivalent of
+ * the old Postgres upsert. Must be called before any write in that
+ * transaction, since Firestore transactions require all reads first.
+ */
+async function nextCertificateNumber(
+  tx: FirebaseFirestore.Transaction,
+  templateId: string,
+  registrationNo: string
+): Promise<string> {
+  const templateRef = adminDb.collection(TEMPLATES).doc(templateId);
+  const templateSnap = await tx.get(templateRef);
+  if (!templateSnap.exists) throw new Error('Certificate template not found.');
+  const template = templateSnap.data()!;
+
+  const year = new Date().getFullYear();
+  const counterRef = adminDb.collection(COUNTERS).doc(`${templateId}_${year}`);
+  const counterSnap = await tx.get(counterRef);
+  const nextSeq = counterSnap.exists ? (counterSnap.data()!.nextSeq as number) : 1;
+
+  const reg = registrationNo.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'REG';
+  const number = `${template.numberPrefix}/${year}/${reg}/${String(nextSeq).padStart(4, '0')}`;
+
+  tx.set(counterRef, { nextSeq: nextSeq + 1 }, { merge: true });
+  return number;
 }
 
 export async function issueCertificate(certificateId: string): Promise<Certificate> {
@@ -95,33 +127,78 @@ export async function issueCertificate(certificateId: string): Promise<Certifica
     if (cert.status === 'issued') return toCertificate(certSnap.id, cert); // idempotent, matches the old SQL function's behavior
     if (cert.status === 'cancelled') throw new Error('A cancelled certificate cannot be issued.');
 
-    const templateRef = adminDb.collection(TEMPLATES).doc(cert.templateId);
-    const templateSnap = await tx.get(templateRef);
-    if (!templateSnap.exists) throw new Error('Certificate template not found.');
-    const template = templateSnap.data()!;
-
     const profileRef = adminDb.collection(PROFILES).doc(user.uid);
     const profileSnap = await tx.get(profileRef);
-    const registrationNo = (profileSnap.data()?.registrationNo as string | null) ?? '';
+    const p = profileSnap.data() ?? {};
+    const vet: VetSnapshot = {
+      fullName: (p.fullName as string) ?? '',
+      designation: (p.designation as string) ?? '',
+      registrationNo: (p.registrationNo as string) ?? '',
+      institution: (p.institution as string) ?? '',
+      mandal: (p.mandal as string) ?? '',
+      district: (p.district as string) ?? '',
+    };
 
-    // One counter per template per year, incremented atomically inside this
-    // transaction — the Firestore equivalent of the old Postgres upsert.
-    const year = new Date().getFullYear();
-    const counterRef = adminDb.collection(COUNTERS).doc(`${cert.templateId}_${year}`);
-    const counterSnap = await tx.get(counterRef);
-    const nextSeq = counterSnap.exists ? (counterSnap.data()!.nextSeq as number) : 1;
-
-    const reg = registrationNo.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'REG';
-    const number = `${template.numberPrefix}/${year}/${reg}/${String(nextSeq).padStart(4, '0')}`;
+    const number = await nextCertificateNumber(tx, cert.templateId, vet.registrationNo);
     const now = new Date().toISOString();
 
-    tx.set(counterRef, { nextSeq: nextSeq + 1 }, { merge: true });
-    tx.update(certRef, { status: 'issued', number, issuedBy: user.uid, issuedAt: now, updatedAt: now });
+    tx.update(certRef, { status: 'issued', number, issuedBy: user.uid, issuedAt: now, updatedAt: now, vet });
 
-    return toCertificate(certSnap.id, { ...cert, status: 'issued', number, issuedBy: user.uid, issuedAt: now, updatedAt: now });
+    return toCertificate(certSnap.id, { ...cert, status: 'issued', number, issuedBy: user.uid, issuedAt: now, updatedAt: now, vet });
   });
 
-  revalidatePath('/desk');
+  revalidatePath('/');
+  return result;
+}
+
+export interface IssueDirectInput {
+  templateId: string;
+  data: CertificateData;
+  animals: CertificateData[];
+  profile: z.infer<typeof vetProfileSchema>;
+}
+
+/**
+ * Creates and issues a certificate in one step, without requiring an
+ * existing saved draft — the path used for "Issue and print", which (unlike
+ * "Save draft") works whether or not the vet is signed in. An anonymous
+ * issuer has no `profiles` doc to join later at /verify time, so the vet's
+ * typed details are snapshotted onto the certificate itself.
+ */
+export async function issueCertificateDirect(input: IssueDirectInput): Promise<Certificate> {
+  const profile = vetProfileSchema.parse(input.profile);
+  const data = certificateDataSchema.parse(input.data);
+  const animals = animalsSchema.parse(input.animals ?? []);
+
+  const user = await getCurrentUser();
+  if (user) await updateVetProfile(user.uid, profile);
+
+  const vet: VetSnapshot = { ...profile };
+  const certRef = adminDb.collection(CERTIFICATES).doc();
+
+  const result = await adminDb.runTransaction(async (tx) => {
+    const number = await nextCertificateNumber(tx, input.templateId, vet!.registrationNo);
+    const now = new Date().toISOString();
+    const doc = {
+      templateId: input.templateId,
+      data,
+      animals,
+      number,
+      status: 'issued' as const,
+      cancelledReason: null,
+      cancelledAt: null,
+      createdBy: user?.uid ?? null,
+      issuedBy: user?.uid ?? null,
+      issuedAt: now,
+      createdAt: now,
+      updatedAt: now,
+      vet,
+    };
+    tx.set(certRef, doc);
+    return toCertificate(certRef.id, doc);
+  });
+
+  revalidatePath('/');
   return result;
 }
 
@@ -141,7 +218,7 @@ export async function cancelCertificate(certificateId: string, reason: string): 
   const now = new Date().toISOString();
   const cancelledReason = reason.trim().slice(0, 500);
   await certRef.update({ status: 'cancelled', cancelledReason, cancelledAt: now, updatedAt: now });
-  revalidatePath('/desk');
+  revalidatePath('/');
   const updated = await certRef.get();
   return toCertificate(updated.id, updated.data()!);
 }

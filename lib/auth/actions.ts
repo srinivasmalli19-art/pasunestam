@@ -58,6 +58,7 @@ export async function signIn(formData: FormData) {
 }
 
 export async function signUp(formData: FormData) {
+  const next = safeNext(String(formData.get('next') ?? ''));
   const parsed = signUpSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -66,7 +67,7 @@ export async function signUp(formData: FormData) {
 
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? 'Check your details and try again.';
-    redirect(`/signup?error=${encodeURIComponent(message)}`);
+    redirect(`/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
   }
 
   const { email, password, fullName } = parsed.data;
@@ -79,7 +80,7 @@ export async function signUp(formData: FormData) {
     uid = result.localId;
   } catch (e) {
     const message = e instanceof IdentityToolkitError ? e.message : 'Could not create your account. Try again.';
-    redirect(`/signup?error=${encodeURIComponent(message)}`);
+    redirect(`/signup?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
   }
 
   // Direct replacement for the old Postgres handle_new_user() trigger — no
@@ -87,7 +88,9 @@ export async function signUp(formData: FormData) {
   await createProfile(uid, fullName);
   await sendEmailVerification(idToken);
 
-  redirect('/login?checkEmail=1');
+  // Not signed in yet — email verification comes first — so `next` has to
+  // survive one more hop, through /login, rather than being used directly.
+  redirect(`/login?checkEmail=1&next=${encodeURIComponent(next)}`);
 }
 
 export async function signOut() {

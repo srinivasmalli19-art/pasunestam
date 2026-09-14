@@ -58,7 +58,7 @@ export default function CertificatesList({ certificates }: Props) {
     <main className="container certs-list-page">
       <div className="certs-list-head">
         <h1 style={{ fontSize: '1.8rem' }}>Saved certificates</h1>
-        <Link href="/desk" className="button-ghost button-sm" style={{ width: 'auto' }}>
+        <Link href="/" className="button-ghost button-sm" style={{ width: 'auto' }}>
           Back to desk
         </Link>
       </div>
@@ -94,7 +94,7 @@ export default function CertificatesList({ certificates }: Props) {
               </div>
               <div className="certs-row-actions">
                 <Link
-                  href={`/desk/certificates/new/${c.templateKey}?draft=${c.id}`}
+                  href={`/certificates/new/${c.templateKey}?draft=${c.id}`}
                   className="button-ghost button-sm"
                 >
                   {c.status === 'draft' ? 'Continue editing' : 'View'}

@@ -19,7 +19,9 @@ export interface DeskTemplate {
 }
 
 interface Props {
-  greeting: string;
+  signedIn: boolean;
+  /** Null when signed out — the hero heading is used without a personal greeting line above it. */
+  greeting: string | null;
   templates: DeskTemplate[];
   recent: RecentCertificate[];
   due: { daysLeft: number; dueDayMonth: string; monthName: string };
@@ -37,19 +39,19 @@ const TILE_CLASS: Record<string, string> = {
   postmortem: 't-pm',
 };
 
-export default function DeskHero({ greeting, templates, recent, due }: Props) {
+export default function DeskHero({ signedIn, greeting, templates, recent, due }: Props) {
   const [query, setQuery] = useState('');
 
   const searchIndex = useMemo<SearchHit[]>(() => {
     const fromTemplates = templates.map((t) => ({
       label: t.name,
       kind: 'Certificate',
-      href: `/desk/certificates/new/${t.key}`,
+      href: `/certificates/new/${t.key}`,
     }));
     const fromRecent = recent.map((c) => ({
       label: `${c.templateName}${c.owner ? ` — ${c.owner}` : ''}`,
       kind: c.number ?? 'Issued',
-      href: `/desk/certificates/new/${c.templateKey}?draft=${c.id}`,
+      href: `/certificates/new/${c.templateKey}?draft=${c.id}`,
     }));
     return [...fromTemplates, ...fromRecent];
   }, [templates, recent]);
@@ -65,7 +67,7 @@ export default function DeskHero({ greeting, templates, recent, due }: Props) {
   return (
     <section className="hero">
       <div>
-        <p className="hello">{greeting}</p>
+        {greeting && <p className="hello">{greeting}</p>}
         <h1>Every certificate, scheme and case on one desk.</h1>
         <p className="lede">
           Fill a form once, watch the certificate take shape as you type, and print it ready to sign. Schemes,
@@ -97,15 +99,15 @@ export default function DeskHero({ greeting, templates, recent, due }: Props) {
         </div>
         <div className="popular">
           <span>Often used:</span>
-          {byKey.health && <Link href={`/desk/certificates/new/health`}>Transport health certificate</Link>}
-          {byKey.valuation && <Link href={`/desk/certificates/new/valuation`}>Insurance valuation</Link>}
-          {byKey.postmortem && <Link href={`/desk/certificates/new/postmortem`}>Post-mortem report</Link>}
+          {byKey.health && <Link href={`/certificates/new/health`}>Transport health certificate</Link>}
+          {byKey.valuation && <Link href={`/certificates/new/valuation`}>Insurance valuation</Link>}
+          {byKey.postmortem && <Link href={`/certificates/new/postmortem`}>Post-mortem report</Link>}
         </div>
       </div>
 
       <div className="desk" aria-label="Issue a certificate">
         {templates.map((t) => (
-          <Link key={t.key} href={`/desk/certificates/new/${t.key}`} className={`tile ${TILE_CLASS[t.key] ?? ''}`}>
+          <Link key={t.key} href={`/certificates/new/${t.key}`} className={`tile ${TILE_CLASS[t.key] ?? ''}`}>
             {t.key === 'health' && (
               <span className="mini-doc" aria-hidden="true">
                 <i></i>
@@ -133,9 +135,13 @@ export default function DeskHero({ greeting, templates, recent, due }: Props) {
         <div className="recent">
           <div className="recent-head">
             <h4>Recently issued</h4>
-            <Link href="/desk/certificates">See all saved certificates</Link>
+            {signedIn && <Link href="/desk/certificates">See all saved certificates</Link>}
           </div>
-          {recent.length ? (
+          {!signedIn ? (
+            <p className="empty">
+              <Link href="/login">Sign in</Link> to see your recently issued certificates and saved drafts.
+            </p>
+          ) : recent.length ? (
             <ul>
               {recent.map((c) => (
                 <li key={c.id}>

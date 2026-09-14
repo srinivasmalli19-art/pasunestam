@@ -71,11 +71,27 @@ export interface Certificate {
   status: CertificateStatus;
   cancelledReason: string | null;
   cancelledAt: string | null;
-  createdBy: string;
+  /** Null for a certificate issued anonymously (no account) — see issueCertificateDirect. */
+  createdBy: string | null;
   issuedBy: string | null;
   issuedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  /**
+   * A snapshot of the issuing vet's details as typed into the form at issue
+   * time. Anonymous issuers have no `profiles` doc to join later, so this is
+   * the only record of who issued the certificate; written for every
+   * certificate issued via issueCertificateDirect. Certificates issued
+   * before this field existed fall back to a `profiles`-by-`issuedBy` lookup.
+   */
+  vet?: {
+    fullName: string;
+    designation: string;
+    registrationNo: string;
+    institution: string;
+    mandal: string;
+    district: string;
+  };
 }
 
 /** The "Issuing veterinarian" fields, common to every certificate type. */

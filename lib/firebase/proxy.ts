@@ -1,8 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { safeNext } from '../safe-next';
 
-// Pages that require the vet (or editor/admin) to be signed in.
-const PROTECTED_PREFIXES = ['/desk', '/admin'];
+// Pages that require the vet (or editor/admin) to be signed in. The
+// certificate builder itself (/certificates/new/...) is deliberately public
+// — filling, printing and issuing a certificate work without an account;
+// only saving a draft to one's account does, gated inside the builder
+// itself rather than here. /desk/certificates (the saved-drafts list) is the
+// one part of the old /desk area that's still genuinely account-only.
+const PROTECTED_PREFIXES = ['/desk/certificates', '/admin'];
 export const SESSION_COOKIE_NAME = 'session';
 
 /**

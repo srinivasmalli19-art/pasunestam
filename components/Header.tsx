@@ -21,7 +21,7 @@ export default async function Header() {
       <Logo />
       <input type="checkbox" id="nav-toggle" className="nav-toggle-input" />
       <nav aria-label="Main">
-        <Link href={user ? '/desk' : '/login'}>Certificates</Link>
+        <Link href="/">Certificates</Link>
         {NAV_LINKS.map((l) => (
           <Link key={l.href} href={l.href}>
             {l.label}
@@ -32,19 +32,17 @@ export default async function Header() {
         Menu
       </label>
       <div className="top-cta">
+        <Link href="/certificates/new/health" className="button-primary button-sm">
+          New certificate
+        </Link>
         {user ? (
-          <>
-            <Link href="/desk/certificates/new/health" className="button-primary button-sm">
-              New certificate
-            </Link>
-            <form action={signOut}>
-              <button type="submit" className="button-ghost button-sm">
-                Sign out
-              </button>
-            </form>
-          </>
+          <form action={signOut}>
+            <button type="submit" className="button-ghost button-sm">
+              Sign out
+            </button>
+          </form>
         ) : (
-          <Link href="/login" className="button-primary button-sm">
+          <Link href="/login" className="button-ghost button-sm">
             Sign in
           </Link>
         )}

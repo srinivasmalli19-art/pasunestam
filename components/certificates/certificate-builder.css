@@ -36,16 +36,6 @@
   color: #fff;
   cursor: default;
 }
-.b-variant-select {
-  border: 0;
-  border-radius: 9px;
-  padding: 8px 13px;
-  font: 600 0.9rem var(--font-body);
-  cursor: pointer;
-  background: var(--ink);
-  color: #fff;
-  min-height: 0;
-}
 .b-actions {
   margin-left: auto;
   display: flex;

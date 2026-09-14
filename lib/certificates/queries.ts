@@ -116,7 +116,9 @@ export async function getCertificateByNumber(number: string): Promise<VerifiedCe
 
   const [templateSnap, profileSnap] = await Promise.all([
     adminDb.collection(TEMPLATES).doc(cert.templateId).get(),
-    cert.issuedBy ? adminDb.collection('profiles').doc(cert.issuedBy).get() : Promise.resolve(null),
+    // Only needed as a fallback for certificates issued before the `vet`
+    // snapshot field existed — see issueCertificateDirect in actions.ts.
+    !cert.vet && cert.issuedBy ? adminDb.collection('profiles').doc(cert.issuedBy).get() : Promise.resolve(null),
   ]);
 
   return {
@@ -126,7 +128,7 @@ export async function getCertificateByNumber(number: string): Promise<VerifiedCe
     owner: cert.data?.owner ?? '',
     species: cert.data?.species ?? '',
     tag: cert.data?.tag ?? '',
-    vetName: (profileSnap?.data()?.fullName as string) ?? '',
-    institution: (profileSnap?.data()?.institution as string) ?? '',
+    vetName: (cert.vet?.fullName as string) ?? (profileSnap?.data()?.fullName as string) ?? '',
+    institution: (cert.vet?.institution as string) ?? (profileSnap?.data()?.institution as string) ?? '',
   };
 }

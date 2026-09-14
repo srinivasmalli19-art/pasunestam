@@ -1,19 +1,37 @@
-import Link from 'next/link';
+import DeskHero from '@/components/desk/DeskHero';
+import { getCurrentUser } from '@/lib/auth/session';
+import { getMonthlyReturnDue } from '@/lib/returns/due-date';
+import { getPublishedTemplates, getRecentIssuedCertificates } from '@/lib/certificates/queries';
 
-export default function Home() {
+function greetingFor(hour: number): string {
+  if (hour < 12) return 'Good morning, Doctor';
+  if (hour < 17) return 'Good afternoon, Doctor';
+  return 'Good evening, Doctor';
+}
+
+export default async function Home() {
+  const user = await getCurrentUser();
+
+  const [templates, recentRaw] = await Promise.all([
+    getPublishedTemplates(),
+    user ? getRecentIssuedCertificates(user.uid) : Promise.resolve([]),
+  ]);
+
+  const recent = recentRaw.map((c) => ({
+    id: c.id,
+    templateKey: c.templateKey,
+    templateName: c.templateName,
+    number: c.number,
+    owner: c.data.owner ?? '',
+  }));
+
   return (
-    <main className="container" style={{ textAlign: 'center', paddingTop: '64px' }}>
-      <p style={{ color: 'var(--leaf)', fontWeight: 600 }}>పశు నేస్తం</p>
-      <h1>Every certificate, scheme and case on one desk.</h1>
-      <p>
-        Fill a form once, watch the certificate take shape as you type, and print it ready to
-        sign. Schemes, admissions, vet news and supply prices sit right beside it.
-      </p>
-      <p>
-        <Link href="/login" className="button-primary" style={{ width: 'auto' }}>
-          Sign in to your desk
-        </Link>
-      </p>
-    </main>
+    <DeskHero
+      signedIn={!!user}
+      greeting={user ? greetingFor(new Date().getHours()) : null}
+      templates={templates}
+      recent={recent}
+      due={getMonthlyReturnDue()}
+    />
   );
 }

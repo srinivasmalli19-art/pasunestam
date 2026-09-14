@@ -29,7 +29,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
         </button>
       </form>
       <p>
-        New here? <Link href="/signup">Create an account</Link>
+        New here? <Link href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Create an account</Link>
       </p>
     </main>
   );
