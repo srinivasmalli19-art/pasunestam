@@ -21,15 +21,32 @@ export function getFirebaseProjectId(): string {
   return process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-pasunestam';
 }
 
+/**
+ * Service-account JSON keys store the private key with literal "\n"
+ * sequences once flattened into a single .env line; turn them back into
+ * real newlines or the PEM key fails to parse. Also strips a pair of
+ * surrounding quotes if present: a `.env` *file* uses quotes as syntax (the
+ * value itself never includes them), but a hosting UI's env var box is a
+ * plain text field — paste the value there "as it appears in .env.local,
+ * quotes and all" and the quotes become part of the literal string, which
+ * corrupts the PEM and fails with a cryptic OpenSSL DECODER error. Stripping
+ * them here means it works whichever way it was pasted.
+ */
+export function normalizePrivateKey(raw: string): string {
+  const trimmed = raw.trim();
+  const unquoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ? trimmed.slice(1, -1)
+      : trimmed;
+  return unquoted.replace(/\\n/g, '\n');
+}
+
 /** Service-account credentials, only required when not using the emulators. */
 export function getFirebaseAdminCredentials() {
   return {
     projectId: getFirebaseProjectId(),
     clientEmail: readEnv('FIREBASE_CLIENT_EMAIL'),
-    // Service-account JSON keys store the private key with literal "\n"
-    // sequences once flattened into a single .env line; turn them back into
-    // real newlines or the PEM key fails to parse.
-    privateKey: readEnv('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
+    privateKey: normalizePrivateKey(readEnv('FIREBASE_PRIVATE_KEY')),
   };
 }
 
