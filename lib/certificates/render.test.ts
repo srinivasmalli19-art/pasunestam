@@ -117,3 +117,34 @@ describe('renderBody', () => {
     expect(html).toContain('<td>Breed</td><td><span class="blank"></span></td>');
   });
 });
+
+describe('renderBody — blank print-and-fill form', () => {
+  const blankForm = { options: { sex: ['Female', 'Male'], species: ['A', 'B', 'C', 'D', 'E'] }, multiline: new Set(['history']) };
+
+  it('keeps conditional wording so it can be filled by hand', () => {
+    expect(renderText('to {{owner}}{{#if guardian}}, S/o. {{guardian}}{{/if}}.', {}, { blankForm })).toBe(
+      'to <span class="blank"></span>, S/o. <span class="blank"></span>.'
+    );
+  });
+
+  it('shows a blank line instead of a default value', () => {
+    expect(renderText('{{samples|default:Nil}}', {}, { blankForm })).toBe('<span class="blank"></span>');
+  });
+
+  it('prints short choice lists to strike out, but not long ones', () => {
+    expect(renderText('{{sex}}', {}, { blankForm })).toBe('<span class="blank-choices">Female / Male</span>');
+    expect(renderText('{{species}}', {}, { blankForm })).toBe('<span class="blank"></span>');
+  });
+
+  it('gives long-answer fields several lines of writing space', () => {
+    expect(renderBody([{ type: 'paragraph', text: '{{history}}' }], {}, [], blankForm)).toBe(
+      '<p><span class="blank blank-lines"></span></p>'
+    );
+  });
+
+  it('leaves animal-table cells empty, one column per blank animal', () => {
+    const html = renderBody([{ type: 'animal-table', rows: [{ label: 'Breed', field: 'breed' }] }], {}, [{}, {}, {}], blankForm);
+    expect(html).toContain('<th>Animal 3</th>');
+    expect(html).toContain('<td>Breed</td><td></td><td></td><td></td>');
+  });
+});

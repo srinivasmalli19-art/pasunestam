@@ -5,6 +5,7 @@ import Logo from './Logo';
 import './header.css';
 
 const NAV_LINKS = [
+  { href: '/knowledge', label: 'Knowledge hub' },
   { href: '/schemes', label: 'Schemes & forms' },
   { href: '/news', label: 'News' },
   { href: '/admissions', label: 'Admissions' },
@@ -19,7 +20,6 @@ export default async function Header() {
   return (
     <header className="top">
       <Logo />
-      <input type="checkbox" id="nav-toggle" className="nav-toggle-input" />
       <nav aria-label="Main">
         <Link href="/">Certificates</Link>
         {NAV_LINKS.map((l) => (
@@ -28,12 +28,9 @@ export default async function Header() {
           </Link>
         ))}
       </nav>
-      <label htmlFor="nav-toggle" className="menu-btn button-ghost button-sm">
-        Menu
-      </label>
       <div className="top-cta">
-        <Link href="/certificates/new/health" className="button-primary button-sm">
-          New certificate
+        <Link href="/certificates/new/health" className="button-primary button-sm" aria-label="New certificate">
+          New<span className="cta-extra">&nbsp;certificate</span>
         </Link>
         {user ? (
           <form action={signOut}>

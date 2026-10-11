@@ -1,0 +1,190 @@
+/* The blank, print-and-fill-by-hand certificate (/certificates/blank/[key]).
+   Writing space on the paper itself lives under .cert-blank so the filled-in
+   certificate's look is untouched. */
+
+.blank-cert-page {
+  background: #e4e7df;
+  min-height: 100vh;
+}
+.blank-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 0;
+}
+.blank-toolbar h1 {
+  font: 700 1.35rem var(--font-heading);
+  margin: 0;
+}
+.blank-toolbar p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  max-width: 52ch;
+  font-size: 0.93rem;
+}
+.blank-toolbar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Lines long enough to write on by hand. */
+.cert-blank .blank {
+  min-width: 160px;
+}
+.cert-blank .c-meta .blank {
+  min-width: 130px;
+}
+.cert-blank .blank-lines {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 4.8em;
+  border-bottom: 0;
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(1.6em - 1px), #9a9a9a calc(1.6em - 1px), #9a9a9a 1.6em);
+}
+.cert-blank .blank-choices {
+  letter-spacing: 0.01em;
+}
+.cert-blank .c-table td {
+  height: 2.1em;
+}
+/* Equal-width animal columns whatever the count (1-5), label column fixed. */
+.cert-blank .animal-table {
+  table-layout: fixed;
+}
+.cert-blank .animal-table tr:first-child th:first-child {
+  width: 30%;
+}
+.cert-blank .animal-table th {
+  white-space: nowrap;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.cert-blank .sign {
+  text-align: left;
+  border-top: 0;
+  padding-top: 40px;
+  line-height: 2;
+}
+.cert-blank .sign .blank {
+  min-width: 150px;
+}
+
+/* "How many animals?" step, and the switch in the toolbar. */
+.animal-chooser {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vh, 90px) 16px 60px;
+  text-align: center;
+}
+.chooser-kicker {
+  margin: 0;
+  font-weight: 700;
+  color: var(--leaf);
+}
+.animal-chooser h1 {
+  font: 800 clamp(1.7rem, 4vw, 2.3rem) / 1.1 var(--font-heading);
+  margin: 8px 0 10px;
+}
+.animal-chooser > p {
+  color: var(--muted);
+  margin: 0 0 26px;
+}
+.chooser-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.chooser-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 18px 6px 14px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--ink);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.chooser-option b {
+  font: 800 2rem / 1 var(--font-heading);
+}
+.chooser-option span {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.chooser-option:hover,
+.chooser-option:focus-visible {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.chooser-back {
+  display: inline-block;
+  margin-top: 22px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.animal-switch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.animal-switch a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  color: var(--ink);
+  text-decoration: none;
+}
+.animal-switch a[aria-current='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+@media (max-width: 420px) {
+  .chooser-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  .blank-toolbar {
+    display: none !important;
+  }
+  .blank-cert-page {
+    background: #fff;
+    min-height: 0;
+  }
+  .cert-blank .sign {
+    padding-top: 0;
+    line-height: 1.9;
+  }
+  /* Real handwriting room on paper: ~8mm writing lines and ~7mm table rows
+     (the on-screen em-based sizes come out too cramped at print font size). */
+  .cert-blank .blank-lines {
+    height: 24mm;
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(8mm - 1px), #9a9a9a calc(8mm - 1px), #9a9a9a 8mm);
+  }
+  .cert-blank .c-table td {
+    height: 7mm;
+  }
+  .cert-blank p {
+    line-height: 2.1;
+  }
+}

@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import CertificatePreview from './CertificatePreview';
+import { applyVariant } from '@/lib/certificates/variant';
 import { saveDraftCertificate, issueCertificate, issueCertificateDirect } from '@/lib/certificates/actions';
 import type { Certificate, CertificateData, CertificateField, CertificateStatus, CertificateTemplate } from '@/lib/certificates/types';
 import './certificate-builder.css';
@@ -32,10 +34,6 @@ interface Props {
 }
 
 const MAX_ANIMALS = 20;
-// The one field that distinguishes a pure Health Certificate from the
-// combined Health and Valuation Certificate — see the type switcher in the
-// builder header.
-const VALUATION_ONLY_FIELD = 'price';
 
 // "Save draft" needs an account; filling, previewing, printing and issuing
 // don't. Rather than lose what a signed-out vet typed when they're sent off
@@ -211,17 +209,13 @@ export default function CertificateBuilder({
     setDirty(true);
   }
 
-  const isHealthOnly = template.key === 'health' && healthVariant === 'health-only';
-  const effectiveAnimalFields = isHealthOnly
-    ? template.animalFields?.filter((f) => f.id !== VALUATION_ONLY_FIELD)
-    : template.animalFields;
-  const effectiveBody = isHealthOnly
-    ? template.body.map((block) =>
-        block.type === 'animal-table' ? { ...block, rows: block.rows.filter((r) => r.field !== VALUATION_ONLY_FIELD) } : block
-      )
-    : template.body;
-  const effectiveTitleEn = isHealthOnly ? 'Health Certificate' : template.titleEn;
-  const effectiveTitleTe = isHealthOnly ? 'ఆరోగ్య ధృవీకరణ పత్రం' : template.titleTe;
+  const {
+    titleEn: effectiveTitleEn,
+    body: effectiveBody,
+    animalFields: effectiveAnimalFields,
+  } = applyVariant(template, healthVariant);
+  // Public, no sign-in needed: an empty copy of this exact certificate type to print and fill by hand.
+  const blankHref = `/certificates/blank/${template.key}${template.key === 'health' ? `?variant=${healthVariant}` : ''}`;
 
   function selectCertificateType(value: string) {
     if (value === 'health-only' || value === 'full') {
@@ -391,6 +385,15 @@ export default function CertificateBuilder({
             ))}
         </div>
         <div className="b-actions">
+          <Link
+            href={blankHref}
+            target="_blank"
+            rel="noopener"
+            className="button-ghost button-sm"
+            title="Open an empty copy of this certificate to print or save as PDF and fill by hand"
+          >
+            Download blank
+          </Link>
           <button
             type="button"
             className="button-ghost button-sm"
@@ -517,7 +520,6 @@ export default function CertificateBuilder({
           <div className="cert-print-area">
             <CertificatePreview
               titleEn={effectiveTitleEn}
-              titleTe={effectiveTitleTe}
               body={effectiveBody}
               data={data}
               animals={animals}

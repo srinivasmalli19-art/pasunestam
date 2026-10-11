@@ -1,0 +1,190 @@
+/* 3D uterine torsion lab — builds on the AI lab's styles (ai-lab.css). */
+
+.tl-tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tl-viewbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tl-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tl-views button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 9px;
+  padding: 6px 12px;
+  font: 600 0.84rem var(--font-body);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  cursor: pointer;
+}
+.tl-views button[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.tl-viewnote {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.tl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tl-field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.lab-chips button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tl-name {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.tl-sev {
+  flex-shrink: 0;
+  font: 700 0.72rem var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.tl-findings {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.tl-findings dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.tl-findings dd {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+}
+
+.tl-verdict {
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #eef2fb;
+}
+.tl-verdict p {
+  margin: 0;
+}
+.tl-verdict-kicker {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.tl-verdict-head {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 2px !important;
+}
+.tl-verdict ul {
+  margin: 8px 0 0;
+  padding-left: 1.1em;
+  font-size: 0.88rem;
+}
+.tl-verdict .tl-notes {
+  opacity: 0.85;
+  font-style: italic;
+}
+.tl-verdict.is-possible {
+  background: #e3f4e8;
+  color: #1d6b37;
+}
+.tl-verdict.is-caution {
+  background: #fdf1d8;
+  color: #7a4f00;
+}
+.tl-verdict.is-surgery {
+  background: #f8dfdb;
+  color: #8f2d1c;
+}
+
+.tl-case {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tl-select {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.tl-select select {
+  font: 500 0.9rem var(--font-body);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  padding: 8px 10px;
+  min-height: 44px;
+  background: #fff;
+}
+
+.tl-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.tl-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.tl-stage-small {
+  height: min(52vh, 480px);
+}
+.tl-short {
+  font-size: 0.88rem;
+}
+
+/* Ligament labels in their own colours, so they match the sheets. */
+.lab-label.lab-label-left {
+  background: #3b6fd8;
+  color: #fff;
+}
+.lab-label.lab-label-right {
+  background: #e8892b;
+  color: #fff;
+}
+.lab-label.lab-label-twist {
+  background: #d83a2e;
+  color: #fff;
+}
+.lab-label.lab-label-side {
+  background: var(--charcoal);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .tl-compare {
+    grid-template-columns: 1fr;
+  }
+}

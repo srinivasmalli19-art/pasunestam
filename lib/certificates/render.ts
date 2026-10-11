@@ -101,17 +101,51 @@ const PLACEHOLDER = /\{\{(\w+)(?:\|(\w+)(?::([^}]*))?)?\}\}/g;
 // A single, non-nested conditional block: {{#if field}}...{{/if}}
 const CONDITIONAL = /\{\{#if (\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g;
 
+/**
+ * Settings for rendering an empty, print-and-fill-by-hand form (the "Download
+ * blank certificate" option) instead of a filled-in certificate:
+ * - every {{#if}} block is kept, since the vet may need that wording on paper;
+ * - {{field|default:Text}} shows a blank line, not the default;
+ * - a field with a few fixed choices (e.g. Sex: Female/Male) prints them as
+ *   "Female / Male" to strike out, instead of an empty line;
+ * - a long-answer field (textarea) gets several ruled lines of writing space.
+ */
+export interface BlankFormOptions {
+  /** Choices to print for select fields, keyed by field id. Only short lists (up to 4) are printed. */
+  options?: Record<string, string[]>;
+  /** Field ids that need several lines of handwriting space. */
+  multiline?: ReadonlySet<string>;
+}
+
+const MAX_PRINTED_CHOICES = 4;
+
+function blankFieldHtml(field: string, blank: BlankFormOptions): string {
+  if (blank.multiline?.has(field)) return '<span class="blank blank-lines"></span>';
+  const choices = blank.options?.[field];
+  if (choices && choices.length > 1 && choices.length <= MAX_PRINTED_CHOICES) {
+    return `<span class="blank-choices">${choices.map(escapeHtml).join(' / ')}</span>`;
+  }
+  return '<span class="blank"></span>';
+}
+
 /** Renders one paragraph/heading's placeholder text against the certificate's data. */
-export function renderText(text: string, data: CertificateData, options: { blankAsPlaceholder?: boolean } = {}): string {
+export function renderText(
+  text: string,
+  data: CertificateData,
+  options: { blankAsPlaceholder?: boolean; blankForm?: BlankFormOptions } = {}
+): string {
   const blankAsPlaceholder = options.blankAsPlaceholder ?? true;
+  const blankForm = options.blankForm;
 
   const withConditionals = text.replace(CONDITIONAL, (_match, field: string, inner: string) => {
+    if (blankForm) return inner;
     return (data[field] ?? '').trim() !== '' ? inner : '';
   });
 
   return withConditionals.replace(PLACEHOLDER, (_match, field: string, filter: string | undefined, defaultText: string | undefined) => {
     const raw = (data[field] ?? '').trim();
     if (raw === '') {
+      if (blankForm) return blankFieldHtml(field, blankForm);
       if (defaultText !== undefined) return escapeHtml(defaultText);
       return blankAsPlaceholder ? '<span class="blank"></span>' : '';
     }
@@ -119,7 +153,12 @@ export function renderText(text: string, data: CertificateData, options: { blank
   });
 }
 
-function renderTableRow(label: string, fieldSpec: string, data: CertificateData, filter?: Filter): string {
+function renderTableRow(label: string, fieldSpec: string, data: CertificateData, filter?: Filter, blankForm?: BlankFormOptions): string {
+  if (blankForm) {
+    const ids = fieldSpec.split(',').map((id) => id.trim());
+    const cell = ids.length === 1 ? blankFieldHtml(ids[0], blankForm) : '';
+    return `<tr><td>${escapeHtml(label)}</td><td>${cell}</td></tr>`;
+  }
   const value = fieldSpec
     .split(',')
     .map((id) => (data[id.trim()] ?? '').trim())
@@ -135,29 +174,34 @@ function renderTableRow(label: string, fieldSpec: string, data: CertificateData,
  * Always renders at least one (possibly blank) column so the table shape
  * doesn't collapse while the vet hasn't added an animal yet.
  */
-function renderAnimalTable(rows: Array<{ label: string; field: string }>, animals: CertificateData[]): string {
+function renderAnimalTable(rows: Array<{ label: string; field: string }>, animals: CertificateData[], blankForm?: BlankFormOptions): string {
   const columns = animals.length ? animals : [{}];
   const header = `<tr><th></th>${columns.map((_, i) => `<th>Animal ${i + 1}</th>`).join('')}</tr>`;
+  // A blank paper form leaves each cell empty (the table's own grid lines are
+  // the writing space) rather than a dotted line squeezed into every cell.
+  const cell = (animal: CertificateData, field: string) => (blankForm ? '' : valueOrBlank(animal[field]));
   const body = rows
-    .map(
-      (r) =>
-        `<tr><td>${escapeHtml(r.label)}</td>${columns.map((animal) => `<td>${valueOrBlank(animal[r.field])}</td>`).join('')}</tr>`
-    )
+    .map((r) => `<tr><td>${escapeHtml(r.label)}</td>${columns.map((animal) => `<td>${cell(animal, r.field)}</td>`).join('')}</tr>`)
     .join('');
   return `<table class="c-table animal-table">${header}${body}</table>`;
 }
 
-/** Renders every block of a template's body into the certificate's HTML markup. */
-export function renderBody(body: CertificateBodyBlock[], data: CertificateData, animals: CertificateData[] = []): string {
+/** Renders every block of a template's body into the certificate's HTML markup. Pass `blankForm` for an empty print-and-fill form. */
+export function renderBody(
+  body: CertificateBodyBlock[],
+  data: CertificateData,
+  animals: CertificateData[] = [],
+  blankForm?: BlankFormOptions
+): string {
   return body
     .map((block) => {
       if (block.type === 'heading') return `<h5>${escapeHtml(block.text)}</h5>`;
-      if (block.type === 'paragraph') return `<p>${renderText(block.text, data)}</p>`;
+      if (block.type === 'paragraph') return `<p>${renderText(block.text, data, { blankForm })}</p>`;
       if (block.type === 'table') {
-        return `<table class="c-table">${block.rows.map((r) => renderTableRow(r.label, r.field, data, r.filter)).join('')}</table>`;
+        return `<table class="c-table">${block.rows.map((r) => renderTableRow(r.label, r.field, data, r.filter, blankForm)).join('')}</table>`;
       }
       if (block.type === 'animal-table') {
-        return renderAnimalTable(block.rows, animals);
+        return renderAnimalTable(block.rows, animals, blankForm);
       }
       return '';
     })

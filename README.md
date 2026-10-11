@@ -27,22 +27,28 @@ client-side access by default; every read/write happens through Server Component
 
 ### Option A — develop against the Firebase Local Emulator Suite (recommended)
 
-No real Firebase project needed. Requires Java (`java -version`) and the Firebase CLI:
+No real Firebase project needed. Requires Java 11+ (`java -version`) and the Firebase CLI
+(`npm install -g firebase-tools`).
 
-```bash
-npm run emulators          # starts Auth (9099) + Firestore (8080) + emulator UI (4000)
+**Windows, one click:** double-click `START-PASUNESTAM.bat`. In a single window it creates
+`.env.local`, installs packages the first time, starts the database (emulator) in the background
+(its messages go to `emulator-debug.log`), loads the sample data and opens http://localhost:3000.
+Keep the window open while testing; Ctrl+C stops both and saves the test data.
+
+**Manually (any OS):** create `.env.local` with
+
+```
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
 ```
 
-In another terminal, seed the certificate templates and start the app:
+then, in one terminal, `npm run emulators` (Auth 9099, Firestore 8080, emulator UI 4000) and, in a
+second terminal, `npm run db:seed && npm run db:seed:content && npm run dev`.
 
-```bash
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run db:seed
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 npm run dev
-```
-
-(Or set those two vars in `.env.local` so you don't have to repeat them.) The emulator UI at
-http://localhost:4000 lets you inspect Firestore documents and Auth users, and manually mark a
-signed-up user's email as verified (real email sending doesn't happen locally) so you can sign in.
+`npm run emulators` always runs as the `demo-pasunestam` project (matching the app) and saves your
+test data to `./emulator-data` when you stop it with Ctrl+C, loading it again next time. The
+emulator UI at http://localhost:4000 lets you inspect Firestore documents and Auth users, and mark
+a signed-up user's email as verified (real email isn't sent locally) so you can sign in.
 
 ### Option B — a real Firebase project
 

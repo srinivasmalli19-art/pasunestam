@@ -64,6 +64,17 @@ export default function DeskHero({ signedIn, greeting, templates, recent, due }:
 
   const byKey = Object.fromEntries(templates.map((t) => [t.key, t]));
 
+  // Every certificate type as an empty form to print and fill by hand. Health
+  // has two printed versions, so it gets two links.
+  const blankForms = templates.flatMap((t) =>
+    t.key === 'health'
+      ? [
+          { label: 'Health', href: '/certificates/blank/health?variant=health-only' },
+          { label: 'Health and valuation', href: '/certificates/blank/health?variant=full' },
+        ]
+      : [{ label: t.name.replace(/ certificate$/i, '').replace(/ report$/i, ''), href: `/certificates/blank/${t.key}` }]
+  );
+
   return (
     <section className="hero">
       <div>
@@ -102,6 +113,14 @@ export default function DeskHero({ signedIn, greeting, templates, recent, due }:
           {byKey.health && <Link href={`/certificates/new/health`}>Transport health certificate</Link>}
           {byKey.valuation && <Link href={`/certificates/new/valuation`}>Insurance valuation</Link>}
           {byKey.postmortem && <Link href={`/certificates/new/postmortem`}>Post-mortem report</Link>}
+        </div>
+        <div className="popular blank-forms">
+          <span>Blank forms (PDF, no sign-in):</span>
+          {blankForms.map((f) => (
+            <Link key={f.href} href={f.href} target="_blank" rel="noopener">
+              {f.label}
+            </Link>
+          ))}
         </div>
       </div>
 

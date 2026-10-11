@@ -288,11 +288,24 @@
    tall enough (many fields, overflow:auto that print doesn't clip) that it
    was silently padding the printout with extra blank pages. display:none
    actually removes that height instead of just hiding it. */
+/* margin: 0 is what stops the browser printing its own date, page title,
+   web address and page number above and below the certificate: Chrome only
+   puts those in the page margin, so with no margin there is nowhere for them
+   to go. The 10mm white border around the certificate is instead made by
+   .b-preview's padding in the print rules below. */
 @page {
   size: A4;
-  margin: 10mm;
+  margin: 0;
 }
 @media print {
+  /* A plain white sheet: never print the website's grey page colour in the
+     margins, even with Chrome's "Background graphics" option ticked. */
+  html,
+  body,
+  .builder,
+  .blank-cert-page {
+    background: #fff !important;
+  }
   header.top,
   .b-head,
   .b-form,
@@ -308,7 +321,9 @@
     display: block;
   }
   .b-preview {
-    padding: 0;
+    /* The sheet's 10mm white margin (see @page above); bottom left open so
+       rounding can never push the certificate onto a second page. */
+    padding: 10mm 10mm 0;
     overflow: visible;
     background: #fff;
   }
