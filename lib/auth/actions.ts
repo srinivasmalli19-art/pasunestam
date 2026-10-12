@@ -39,7 +39,17 @@ export async function signIn(formData: FormData) {
 
   const claims = decodeIdTokenClaims(idToken);
   if (!claims.email_verified) {
-    const message = 'Please confirm your email before signing in. Check your inbox for the link.';
+    // The password was right, so this is the account owner: send a fresh
+    // confirmation link (the first one may have gone to spam or expired).
+    let message = `Your email isn't confirmed yet. We've sent a new confirmation link to ${parsed.data.email} — open it (check Spam/Promotions too), then sign in again.`;
+    try {
+      await sendEmailVerification(idToken);
+    } catch (e) {
+      message =
+        e instanceof IdentityToolkitError && e.code.startsWith('TOO_MANY_ATTEMPTS')
+          ? 'Your email isn\'t confirmed yet. A confirmation link was sent recently — please wait a few minutes, check Spam/Promotions, then try again.'
+          : 'Your email isn\'t confirmed yet. Please open the confirmation link we emailed you (check Spam/Promotions), then sign in again.';
+    }
     redirect(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
   }
 
@@ -86,7 +96,11 @@ export async function signUp(formData: FormData) {
   // Direct replacement for the old Postgres handle_new_user() trigger — no
   // Cloud Function needed, so this stays on Firebase's free Spark plan.
   await createProfile(uid, fullName);
-  await sendEmailVerification(idToken);
+  try {
+    await sendEmailVerification(idToken);
+  } catch {
+    // Account is created either way; signing in later re-sends the link.
+  }
 
   // Not signed in yet — email verification comes first — so `next` has to
   // survive one more hop, through /login, rather than being used directly.

@@ -11,7 +11,10 @@ export default async function LoginPage(props: PageProps<'/login'>) {
     <main className="card">
       <h1>Sign in</h1>
       {checkEmail && (
-        <p className="notice-text">Check your email to confirm your account, then sign in below.</p>
+        <p className="notice-text">
+          Account created. We&apos;ve emailed you a confirmation link from noreply@pasunestam.firebaseapp.com —
+          open it (check your Spam or Promotions folder if you don&apos;t see it), then sign in below.
+        </p>
       )}
       {error && <p className="error-text">{error}</p>}
       <form action={signIn}>
