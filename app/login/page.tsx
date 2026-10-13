@@ -6,16 +6,17 @@ export default async function LoginPage(props: PageProps<'/login'>) {
   const next = typeof params.next === 'string' ? params.next : '';
   const error = typeof params.error === 'string' ? params.error : '';
   const checkEmail = params.checkEmail === '1';
+  const passwordReset = params.reset === '1';
 
   return (
     <main className="card">
       <h1>Sign in</h1>
       {checkEmail && (
         <p className="notice-text">
-          Account created. We&apos;ve emailed you a confirmation link from noreply@pasunestam.firebaseapp.com —
-          open it (check your Spam or Promotions folder if you don&apos;t see it), then sign in below.
+          Account created. We&apos;ve emailed you a link to confirm your address — open it, then sign in below.
         </p>
       )}
+      {passwordReset && <p className="notice-text">Your password has been changed. Sign in with the new password.</p>}
       {error && <p className="error-text">{error}</p>}
       <form action={signIn}>
         <input type="hidden" name="next" value={next} />
@@ -31,6 +32,9 @@ export default async function LoginPage(props: PageProps<'/login'>) {
           Sign in
         </button>
       </form>
+      <p>
+        <Link href="/forgot-password">Forgot password?</Link>
+      </p>
       <p>
         New here? <Link href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Create an account</Link>
       </p>

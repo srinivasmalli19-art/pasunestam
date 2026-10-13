@@ -6,12 +6,13 @@ import { revalidatePath } from 'next/cache';
 import { safeNext } from '@/lib/safe-next';
 import {
   IdentityToolkitError,
+  confirmPasswordReset,
   decodeIdTokenClaims,
-  sendEmailVerification,
   signInWithPassword,
   signUpWithPassword,
 } from '@/lib/firebase/rest';
-import { signInSchema, signUpSchema } from './schemas';
+import { forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema } from './schemas';
+import { sendPasswordReset, sendVerification } from './emails';
 import { createProfile } from './profile';
 import { createSessionCookie, SESSION_COOKIE_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from './session';
 
@@ -41,14 +42,14 @@ export async function signIn(formData: FormData) {
   if (!claims.email_verified) {
     // The password was right, so this is the account owner: send a fresh
     // confirmation link (the first one may have gone to spam or expired).
-    let message = `Your email isn't confirmed yet. We've sent a new confirmation link to ${parsed.data.email} — open it (check Spam/Promotions too), then sign in again.`;
+    let message = `Your email isn't confirmed yet. We've sent a new confirmation link to ${parsed.data.email} — open it, then sign in again.`;
     try {
-      await sendEmailVerification(idToken);
+      await sendVerification(parsed.data.email, idToken);
     } catch (e) {
       message =
         e instanceof IdentityToolkitError && e.code.startsWith('TOO_MANY_ATTEMPTS')
-          ? 'Your email isn\'t confirmed yet. A confirmation link was sent recently — please wait a few minutes, check Spam/Promotions, then try again.'
-          : 'Your email isn\'t confirmed yet. Please open the confirmation link we emailed you (check Spam/Promotions), then sign in again.';
+          ? 'Your email isn\'t confirmed yet. A confirmation link was sent recently — please wait a few minutes, then try again.'
+          : 'Your email isn\'t confirmed yet. Please open the confirmation link we emailed you, then sign in again.';
     }
     redirect(`/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(message)}`);
   }
@@ -97,7 +98,7 @@ export async function signUp(formData: FormData) {
   // Cloud Function needed, so this stays on Firebase's free Spark plan.
   await createProfile(uid, fullName);
   try {
-    await sendEmailVerification(idToken);
+    await sendVerification(email, idToken, fullName);
   } catch {
     // Account is created either way; signing in later re-sends the link.
   }
@@ -112,4 +113,46 @@ export async function signOut() {
   cookieStore.delete(SESSION_COOKIE_NAME);
   revalidatePath('/', 'layout');
   redirect('/');
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get('email') });
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? 'Enter a valid email address.';
+    redirect(`/forgot-password?error=${encodeURIComponent(message)}`);
+  }
+
+  try {
+    await sendPasswordReset(parsed.data.email);
+  } catch {
+    redirect(
+      `/forgot-password?error=${encodeURIComponent('Could not send the reset email right now. Please try again in a few minutes.')}`
+    );
+  }
+
+  // Same answer whether or not the account exists, so this page can't be
+  // used to check who has an account.
+  redirect(`/forgot-password?sent=${encodeURIComponent(parsed.data.email)}`);
+}
+
+export async function resetPassword(formData: FormData) {
+  const oobCode = String(formData.get('oobCode') ?? '');
+  const back = `/auth/action?mode=resetPassword&oobCode=${encodeURIComponent(oobCode)}`;
+  const parsed = resetPasswordSchema.safeParse({
+    password: formData.get('password'),
+    confirm: formData.get('confirm'),
+  });
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? 'Check the new password and try again.';
+    redirect(`${back}&error=${encodeURIComponent(message)}`);
+  }
+
+  try {
+    await confirmPasswordReset(oobCode, parsed.data.password);
+  } catch (e) {
+    const message = e instanceof IdentityToolkitError ? e.message : 'Could not change the password. Please try again.';
+    redirect(`${back}&error=${encodeURIComponent(message)}`);
+  }
+
+  redirect('/login?reset=1');
 }

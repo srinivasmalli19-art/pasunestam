@@ -32,6 +32,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   TOO_MANY_ATTEMPTS_TRY_LATER: 'Too many attempts. Please wait a few minutes and try again.',
   WEAK_PASSWORD: 'Password must be at least 6 characters.',
   INVALID_EMAIL: 'Enter a valid email address.',
+  EXPIRED_OOB_CODE: 'This link has expired. Please request a new one.',
+  INVALID_OOB_CODE: 'This link is invalid or has already been used. Please request a new one.',
+  RESET_PASSWORD_EXCEED_LIMIT: 'Too many reset requests. Please wait a while and try again.',
 };
 
 /** Maps an Identity Toolkit error code (or "CODE : detail" string) to a friendly message. */
@@ -40,11 +43,15 @@ export function friendlyAuthError(rawCode: string): string {
   return ERROR_MESSAGES[code] ?? 'Something went wrong. Please try again.';
 }
 
-async function callIdentityToolkit<T>(method: string, body: Record<string, unknown>): Promise<T> {
+async function callIdentityToolkit<T>(
+  method: string,
+  body: Record<string, unknown>,
+  { secureToken = true }: { secureToken?: boolean } = {}
+): Promise<T> {
   const res = await fetch(identityToolkitUrl(method), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...body, returnSecureToken: true }),
+    body: JSON.stringify(secureToken ? { ...body, returnSecureToken: true } : body),
   });
   const json = await res.json();
   if (!res.ok) {
@@ -74,8 +81,29 @@ export function signInWithPassword(email: string, password: string): Promise<Sig
   return callIdentityToolkit<SignInResult>('signInWithPassword', { email, password });
 }
 
+/** Fallback sender: Firebase's own (noreply@<project>.firebaseapp.com) verification email. */
 export function sendEmailVerification(idToken: string): Promise<void> {
   return callIdentityToolkit('sendOobCode', { requestType: 'VERIFY_EMAIL', idToken });
+}
+
+/** Fallback sender: Firebase's own password-reset email. */
+export function sendPasswordResetViaFirebase(email: string): Promise<void> {
+  return callIdentityToolkit('sendOobCode', { requestType: 'PASSWORD_RESET', email }, { secureToken: false });
+}
+
+/** Marks the email as verified, using the one-time code from a verification link. */
+export async function applyEmailVerificationCode(oobCode: string): Promise<{ email: string }> {
+  return callIdentityToolkit<{ email: string }>('update', { oobCode }, { secureToken: false });
+}
+
+/** Checks a password-reset code without using it up; returns the account's email. */
+export async function checkPasswordResetCode(oobCode: string): Promise<{ email: string }> {
+  return callIdentityToolkit<{ email: string }>('resetPassword', { oobCode }, { secureToken: false });
+}
+
+/** Sets the new password, using up the one-time code from a reset link. */
+export async function confirmPasswordReset(oobCode: string, newPassword: string): Promise<{ email: string }> {
+  return callIdentityToolkit<{ email: string }>('resetPassword', { oobCode, newPassword }, { secureToken: false });
 }
 
 /**
