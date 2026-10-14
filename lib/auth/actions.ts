@@ -1,6 +1,6 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { safeNext } from '@/lib/safe-next';
@@ -14,7 +14,9 @@ import {
 import { forgotPasswordSchema, resetPasswordSchema, signInSchema, signUpSchema } from './schemas';
 import { sendPasswordReset, sendVerification } from './emails';
 import { createProfile } from './profile';
-import { createSessionCookie, SESSION_COOKIE_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from './session';
+import { createSessionCookie, getCurrentUser, SESSION_COOKIE_MAX_AGE_SECONDS, SESSION_COOKIE_NAME } from './session';
+import { slcLogoutUrl } from './slc';
+import { resolveSiteUrl } from './action-link';
 
 export async function signIn(formData: FormData) {
   const next = safeNext(String(formData.get('next') ?? ''));
@@ -109,9 +111,17 @@ export async function signUp(formData: FormData) {
 }
 
 export async function signOut() {
+  const user = await getCurrentUser();
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
   revalidatePath('/', 'layout');
+  if (user?.viaSlc) {
+    // Staff signed in with SLC: end the shared SLC session too.
+    const h = await headers();
+    const site = resolveSiteUrl(h.get('x-forwarded-host') ?? h.get('host'), h.get('x-forwarded-proto'));
+    const logoutUrl = await slcLogoutUrl(site);
+    if (logoutUrl) redirect(logoutUrl);
+  }
   redirect('/');
 }
 

@@ -81,6 +81,11 @@ export function signInWithPassword(email: string, password: string): Promise<Sig
   return callIdentityToolkit<SignInResult>('signInWithPassword', { email, password });
 }
 
+/** Exchanges a server-minted Firebase custom token for an ID token (SLC staff sign-in). */
+export function signInWithCustomToken(token: string): Promise<{ idToken: string }> {
+  return callIdentityToolkit<{ idToken: string }>('signInWithCustomToken', { token });
+}
+
 /** Fallback sender: Firebase's own (noreply@<project>.firebaseapp.com) verification email. */
 export function sendEmailVerification(idToken: string): Promise<void> {
   return callIdentityToolkit('sendOobCode', { requestType: 'VERIFY_EMAIL', idToken });

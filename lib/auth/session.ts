@@ -8,6 +8,8 @@ export interface CurrentUser {
   uid: string;
   email: string;
   emailVerified: boolean;
+  /** True for SLC staff (editor/admin) who signed in with their SLC Account. */
+  viaSlc: boolean;
 }
 
 /**
@@ -24,8 +26,15 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!cookie) return null;
 
   try {
-    const decoded = await adminAuth.verifySessionCookie(cookie);
-    return { uid: decoded.uid, email: decoded.email ?? '', emailVerified: decoded.email_verified ?? false };
+    let decoded = await adminAuth.verifySessionCookie(cookie);
+    if (decoded.slc_admin === true) {
+      // SLC staff sessions are also checked for revocation, so disabling or
+      // signing someone out in SLC Central Admin takes effect immediately.
+      decoded = await adminAuth.verifySessionCookie(cookie, true);
+    }
+    const viaSlc = decoded.slc_admin === true;
+    const email = viaSlc && typeof decoded.slc_email === 'string' ? decoded.slc_email : decoded.email ?? '';
+    return { uid: decoded.uid, email, emailVerified: viaSlc || (decoded.email_verified ?? false), viaSlc };
   } catch {
     return null;
   }

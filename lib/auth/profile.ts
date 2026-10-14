@@ -64,3 +64,32 @@ export async function updateVetProfile(uid: string, update: VetProfileUpdate): P
       { merge: true }
     );
 }
+
+/**
+ * Creates or updates the profile of an SLC staff account (editor/admin) at
+ * each SLC sign-in, so the role always matches what SLC Central Admin grants.
+ */
+export async function upsertSlcProfile(
+  uid: string,
+  fullName: string | null,
+  role: Extract<UserRole, 'admin' | 'editor'>
+): Promise<void> {
+  const ref = adminDb.collection(COLLECTION).doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) {
+    const profile: Omit<Profile, 'uid'> = {
+      fullName,
+      phone: null,
+      role,
+      designation: role === 'admin' ? 'Administrator' : 'Editor',
+      registrationNo: null,
+      institution: null,
+      mandal: null,
+      district: null,
+      createdAt: new Date().toISOString(),
+    };
+    await ref.set(profile);
+    return;
+  }
+  await ref.set({ role, ...(fullName ? { fullName } : {}) }, { merge: true });
+}

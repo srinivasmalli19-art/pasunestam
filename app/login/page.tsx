@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { signIn } from '@/lib/auth/actions';
+import { getSlcConfig } from '@/lib/auth/slc';
 
 export default async function LoginPage(props: PageProps<'/login'>) {
   const params = await props.searchParams;
@@ -7,6 +8,7 @@ export default async function LoginPage(props: PageProps<'/login'>) {
   const error = typeof params.error === 'string' ? params.error : '';
   const checkEmail = params.checkEmail === '1';
   const passwordReset = params.reset === '1';
+  const slc = getSlcConfig();
 
   return (
     <main className="card">
@@ -35,6 +37,12 @@ export default async function LoginPage(props: PageProps<'/login'>) {
       <p>
         <Link href="/forgot-password">Forgot password?</Link>
       </p>
+      {slc && (
+        <p className="slc-signin">
+          SLC staff (editors and admins):{' '}
+          <a href={`/auth/slc/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Sign in with {slc.providerName}</a>
+        </p>
+      )}
       <p>
         New here? <Link href={`/signup${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Create an account</Link>
       </p>
