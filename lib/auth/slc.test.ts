@@ -86,10 +86,11 @@ describe('SLC sign-in helpers', () => {
   });
 
   it('maps SLC roles to Pasunestam roles (fail closed)', () => {
-    expect(roleFromSlcRoles(['editor', 'admin'])).toBe('admin');
+    expect(roleFromSlcRoles(['editor', 'manager'])).toBe('admin');
+    expect(roleFromSlcRoles(['admin'])).toBeNull();
     expect(roleFromSlcRoles(['editor'])).toBe('editor');
     expect(roleFromSlcRoles(['viewer'])).toBeNull();
-    expect(roleFromSlcRoles('admin')).toBeNull();
+    expect(roleFromSlcRoles('manager')).toBeNull();
     expect(roleFromSlcRoles(undefined)).toBeNull();
     expect(slcFirebaseUid('abc')).toBe('slc:abc');
   });

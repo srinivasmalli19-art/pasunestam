@@ -2,7 +2,7 @@
 
 Editors and admins sign in with their **SLC Account**, the one login with MFA
 shared by every SLC app. Who is an editor or admin is set in SLC Central Admin →
-Admin access (client `pasunestam-admin`, roles `editor` / `admin`). Vets keep
+Admin access (client `pasunestam-admin`, roles `editor` / `manager`). Vets keep
 their own email + password accounts; nothing changes for them.
 
 ## Flow (all server-side, like the rest of this app's auth)
@@ -12,7 +12,9 @@ their own email + password accounts; nothing changes for them.
    secret). State, nonce and verifier sit in a 10-minute httpOnly cookie.
 3. `GET /auth/slc/callback` exchanges the code, verifies the ID token
    (signature, issuer, audience, expiry, nonce), and maps the SLC role:
-   `admin` → profile role `admin`, `editor` → `editor`, anything else → refused.
+   `manager` → profile role `admin`, `editor` → `editor`, anything else → refused.
+   (The SLC role is `manager` because Keycloak will not let Central Admin grant
+   a role named `admin`.)
 4. The profile `profiles/slc:<SLC id>` is created or its role updated, then a
    Firebase custom token (claims `slc_admin`, `slc_roles`, `slc_email`) is
    exchanged through the Identity Toolkit REST API for an ID token and the

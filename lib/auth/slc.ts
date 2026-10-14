@@ -140,10 +140,14 @@ export async function verifyIdToken(idToken: string, discovery: Discovery, confi
   return payload;
 }
 
-/** Pasunestam role granted by the SLC roles for this app, or null for no access. */
+/**
+ * Pasunestam role granted by the SLC roles for this app, or null for no access.
+ * The SLC role is `manager` (not `admin`): Keycloak refuses to let SLC Central
+ * Admin grant a client role named "admin". It maps to the local `admin` role.
+ */
 export function roleFromSlcRoles(roles: unknown): Extract<UserRole, 'admin' | 'editor'> | null {
   const list = Array.isArray(roles) ? roles.filter((r): r is string => typeof r === 'string') : [];
-  if (list.includes('admin')) return 'admin';
+  if (list.includes('manager')) return 'admin';
   if (list.includes('editor')) return 'editor';
   return null;
 }
