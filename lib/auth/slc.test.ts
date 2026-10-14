@@ -134,6 +134,7 @@ describe('SLC sign-in helpers', () => {
     const ok = await verifyIdToken(await idToken({ nonce: 'n1', roles: ['editor'] }), discovery, config, 'n1');
     expect(ok.sub).toBe('kc-1');
     await expect(verifyIdToken(await idToken({ nonce: 'other' }), discovery, config, 'n1')).rejects.toThrow(/nonce/);
+    await expect(verifyIdToken(await idToken({ nonce: 'n1', azp: 'stock-admin' }), discovery, config, 'n1')).rejects.toThrow(/another app/);
     await expect(verifyIdToken(await idToken({ nonce: 'n1' }, { audience: 'stock-admin' }), discovery, config, 'n1')).rejects.toThrow();
     const { privateKey } = await generateKeyPair('RS256');
     const forged = await new SignJWT({ nonce: 'n1' }).setProtectedHeader({ alg: 'RS256', kid: 'k1' }).setIssuer(issuer)

@@ -136,6 +136,7 @@ export async function verifyIdToken(idToken: string, discovery: Discovery, confi
   }
   const { payload } = await jwtVerify(idToken, jwksCache.set, { issuer: discovery.issuer, audience: config.clientId });
   if (payload.nonce !== nonce) throw new Error('SLC sign-in nonce mismatch');
+  if (payload.azp !== undefined && payload.azp !== config.clientId) throw new Error('SLC token was issued to another app');
   if (typeof payload.sub !== 'string' || !payload.sub) throw new Error('SLC token has no subject');
   return payload;
 }
