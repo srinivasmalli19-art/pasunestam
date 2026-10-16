@@ -1,0 +1,754 @@
+/* 3D Estrous Cycle Lab — builds on ai-lab.css and torsion-lab.css. */
+
+.el-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.el-ctl-label {
+  align-self: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.el-timeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.el-timeline input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--ink);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+.el-play {
+  width: auto;
+  flex-shrink: 0;
+}
+.el-day {
+  font-weight: 700;
+  min-width: 108px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.el-events {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 0.92rem;
+  display: grid;
+  gap: 6px;
+}
+.el-heat {
+  background: #fff4e5;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+.el-heat h3 {
+  margin: 4px 0;
+  font: 700 0.95rem var(--font-heading);
+  color: #7a4300;
+}
+.el-heat ul {
+  margin: 0 0 6px;
+  padding-left: 1.1em;
+}
+.el-heat p {
+  margin: 0;
+}
+.el-readout {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.el-embryo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.el-embryo-art {
+  display: block;
+  width: 96px;
+  height: 80px;
+  flex-shrink: 0;
+}
+.el-embryo-art svg,
+.em-magnifier svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.em-magnifier {
+  position: absolute;
+  top: 56px;
+  right: 12px;
+  width: 150px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid #1c2127;
+  border-radius: 16px;
+  padding: 6px 8px 8px;
+  text-align: center;
+  box-shadow: 0 8px 20px -10px rgba(28, 33, 39, 0.5);
+  z-index: 2;
+}
+.em-magnifier .em-mag-art {
+  display: block;
+  height: 100px;
+}
+.em-magnifier small {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.em-magnifier b {
+  display: block;
+  font-size: 0.86rem;
+}
+.el-embryo p {
+  font-size: 0.88rem;
+}
+.el-zona {
+  fill: none;
+  stroke: #c9b8a0;
+  stroke-width: 3;
+}
+.el-cell {
+  fill: #fff7ec;
+  stroke: #c79a6b;
+  stroke-width: 1.5;
+}
+.el-pronucleus {
+  fill: #e8c9a4;
+}
+.el-troph {
+  fill: #fdf3e6;
+  stroke: #c79a6b;
+  stroke-width: 3;
+  stroke-dasharray: 5 2;
+}
+.el-icm {
+  fill: #e8c9a4;
+  stroke: #c79a6b;
+}
+.el-filament {
+  fill: none;
+  stroke: #d8b48a;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.el-placentome {
+  fill: #a8485c;
+}
+
+/* Hormone chart */
+.hc {
+  margin: 0;
+  background: #fcfcfb;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px 10px;
+}
+.hc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.hc-head b {
+  font: 700 1.05rem var(--font-heading);
+}
+.hc-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.hc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 2px;
+  font-size: 0.84rem;
+  color: var(--charcoal);
+}
+.hc-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hc-legend i,
+.hc-tip i {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+.hc-inner {
+  position: relative;
+}
+.hc svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.hc-grid {
+  stroke: #e6e8e1;
+  stroke-width: 1;
+}
+.hc-tick {
+  font: 500 12px var(--font-body);
+  fill: #6b7280;
+}
+.hc-direct {
+  font: 700 12px var(--font-body);
+  fill: #1c2127;
+  paint-order: stroke;
+  stroke: #fcfcfb;
+  stroke-width: 3px;
+}
+.hc-now {
+  stroke: #1c2127;
+  stroke-width: 1.5;
+}
+.hc-hover {
+  stroke: #9aa0a6;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.hc-phase {
+  fill: #eef0ea;
+}
+.hc-phase-estrus {
+  fill: #ffe7c7;
+}
+.hc-phase-pregnancy {
+  fill: #e3f4e8;
+}
+.hc-phase-text {
+  font: 600 11px var(--font-body);
+  fill: #52514e;
+}
+.hc-tip {
+  position: absolute;
+  top: 48px;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px -10px rgba(28, 33, 39, 0.35);
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  display: grid;
+  gap: 2px;
+  pointer-events: none;
+  min-width: 110px;
+}
+.hc-tip span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hc-tip em {
+  margin-left: auto;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.hc-table summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+.hc-table-scroll,
+.el-table-scroll {
+  overflow-x: auto;
+}
+.hc-table table,
+.el-species table {
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-top: 8px;
+  min-width: 100%;
+}
+.hc-table th,
+.hc-table td,
+.el-species th,
+.el-species td {
+  border-bottom: 1px solid var(--line);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.hc-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.el-species {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+}
+.el-species h2 {
+  font: 700 1.2rem var(--font-heading);
+  margin: 0;
+}
+.el-species p {
+  margin: 4px 0 0;
+}
+.el-species thead th {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.el-species tbody th {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* label colours that match the ovary structures */
+.lab-label.lab-label-accent {
+  background: #fff6cc;
+}
+.lab-label.lab-label-cl {
+  background: #e8a33c;
+  color: #fff;
+}
+.lab-label.lab-label-embryo {
+  background: #1c2127;
+  color: #fff;
+}
+
+.hc-scroll-hint {
+  display: none;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+@media (max-width: 700px) {
+  /* keep the chart readable on phones: scroll it sideways instead of shrinking it */
+  .hc-wrap {
+    overflow-x: auto;
+  }
+  .hc-inner {
+    width: 680px;
+  }
+  .hc svg {
+    touch-action: pan-x pan-y;
+  }
+  .el-species table {
+    min-width: 720px;
+  }
+  .hc .hc-scroll-hint,
+  .el-species .hc-scroll-hint {
+    display: block;
+  }
+}
+@media (max-width: 560px) {
+  .el-timeline {
+    flex-wrap: wrap;
+  }
+  .el-day {
+    min-width: 0;
+  }
+  .el-readout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---- guided movie ------------------------------------------------------- */
+.el-mode {
+  grid-template-columns: repeat(2, auto);
+  justify-content: start;
+}
+.el-mode button {
+  font-weight: 700;
+  min-height: 0;
+}
+.el-jumps {
+  justify-content: flex-start;
+}
+.el-movie-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.el-movie-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.em-step {
+  width: auto;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  border: 0;
+}
+.em-step:disabled {
+  opacity: 0.45;
+}
+.em-speed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.em-speed select {
+  min-height: 36px;
+  padding: 4px 8px;
+  width: auto;
+  font-size: 0.85rem;
+}
+.em-progress {
+  display: flex;
+  gap: 3px;
+  height: 22px;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+.em-seg {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: #e3e6df;
+  overflow: hidden;
+}
+.em-seg-done {
+  background: #9fb0d6;
+}
+.em-seg-now {
+  height: 12px;
+  background: #d3daea;
+}
+.em-seg i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--ink);
+  border-radius: 4px;
+}
+
+/* hormone circles (3D overlay and panel) */
+.em-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.em-token {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.05;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 6px 18px -4px rgba(28, 33, 39, 0.45);
+  will-change: transform;
+}
+.em-token b {
+  font: 800 1.02rem var(--font-heading);
+  letter-spacing: 0.01em;
+}
+.em-token small {
+  font-size: 0.56rem;
+  font-weight: 600;
+  opacity: 0.92;
+  max-width: 60px;
+}
+.em-token-dark {
+  color: #1c2127;
+}
+.em-token-sm {
+  width: 46px;
+  height: 46px;
+}
+.em-token-sm b {
+  font-size: 0.78rem;
+}
+.em-token-sm small {
+  display: none;
+}
+.em-token-static {
+  position: static;
+  flex-shrink: 0;
+}
+.em-blocked,
+.em-callout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -6px rgba(28, 33, 39, 0.5);
+}
+.em-blocked {
+  background: #c62828;
+  color: #fff;
+}
+.em-callout {
+  background: #1c2127;
+  color: #ffd23f;
+}
+
+/* subtitles over the 3D */
+.em-subtitle {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  background: rgba(28, 33, 39, 0.86);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.98rem;
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 3;
+}
+.em-subtitle-below {
+  display: none;
+}
+.em-chip {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #ffd23f;
+  color: #1c2127;
+  vertical-align: 1px;
+}
+.em-chip-travel {
+  background: #9fd3ff;
+}
+.em-chip-arrive {
+  background: #ffb199;
+}
+.em-chip-result {
+  background: #a8e6c1;
+}
+.em-bigplay {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  padding: 16px 26px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--ink);
+  color: #fff;
+  font: 800 1.15rem var(--font-heading);
+  box-shadow: 0 12px 30px -10px rgba(28, 33, 39, 0.6);
+  cursor: pointer;
+}
+.em-bigplay small {
+  font: 500 0.8rem var(--font-body);
+  opacity: 0.85;
+}
+
+/* side panel */
+.em-hormone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.em-hormone p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.em-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.em-steps li {
+  border-radius: 10px;
+  padding: 8px 10px;
+  opacity: 0.55;
+  border: 1px solid transparent;
+}
+.em-steps li p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+.em-steps li.em-done {
+  opacity: 0.85;
+}
+.em-steps li.em-now {
+  opacity: 1;
+  background: #fffbe6;
+  border-color: #f1d77a;
+}
+.em-note {
+  background: #eef6ee;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  margin: 0;
+}
+.em-chapters summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+}
+.em-chapters ol {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: grid;
+  gap: 2px;
+}
+.em-chapters button {
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  text-align: left;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--charcoal);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.em-chapters button span {
+  color: var(--muted);
+  width: 1.6em;
+  flex-shrink: 0;
+}
+.em-chapters button em {
+  margin-left: auto;
+  font-style: normal;
+  color: var(--muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.em-chapters button[aria-current='step'] {
+  background: var(--ink);
+  color: #fff;
+}
+.em-chapters button[aria-current='step'] span,
+.em-chapters button[aria-current='step'] em {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 560px) {
+  .em-btn-text {
+    display: none;
+  }
+  .el-movie-bar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .el-movie-buttons .button-sm {
+    min-height: 40px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  .em-speed {
+    margin-left: auto;
+  }
+  .el-movie-bar .el-day {
+    font-size: 0.86rem;
+  }
+  .el-mode button {
+    padding: 8px 12px;
+  }
+}
+@media (max-width: 760px) {
+  .el-movie-bar {
+    scroll-margin-top: 110px;
+  }
+  .em-magnifier {
+    width: 112px;
+    top: 52px;
+    right: 8px;
+  }
+  .em-magnifier .em-mag-art {
+    height: 70px;
+  }
+  .el-movie-bar {
+    grid-template-columns: 1fr;
+  }
+  .el-movie-bar .el-day {
+    text-align: left;
+  }
+  .em-token {
+    width: 56px;
+    height: 56px;
+  }
+  .em-token b {
+    font-size: 0.86rem;
+  }
+  .em-token small {
+    font-size: 0.5rem;
+  }
+  /* on phones the caption sits under the 3D so it does not cover the model */
+  .em-subtitle-over {
+    display: none;
+  }
+  .em-subtitle-below {
+    display: block;
+    position: static;
+    margin-top: 8px;
+    font-size: 0.92rem;
+  }
+  .el-mode {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+}

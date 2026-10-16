@@ -1,0 +1,505 @@
+/* 3D Parasite Life Cycles — builds on the AI, torsion, estrous and egg lab styles. */
+
+.pl-parasites button[aria-selected='true'] {
+  background: #6b2c4f;
+}
+.pl-parasites button span i {
+  font-style: italic;
+}
+.pl-modes {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
+}
+.pl-modes button {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.pl-modes .pl-long {
+  font: 700 0.95rem var(--font-heading);
+  color: inherit;
+}
+.pl-modes .pl-short {
+  display: none;
+}
+.parasite-lab .el-controls {
+  display: block;
+}
+.pl-canvas {
+  height: min(72vh, 680px);
+}
+.pl-building {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* labels over the 3D */
+.parasite-lab .lab-label.pl-stage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 3px;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+.parasite-lab .lab-label.pl-stage b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1c2127;
+  color: #fff;
+  font-size: 0.72rem;
+}
+.parasite-lab .lab-label.pl-stage em {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.parasite-lab .lab-label.pl-infective {
+  box-shadow: 0 0 0 2px #e65100, 0 2px 6px rgba(28, 33, 39, 0.18);
+}
+.parasite-lab .lab-label.pl-stage.is-highlighted {
+  background: #ffd23f;
+}
+.parasite-lab .lab-label.pl-stage.pl-blocked {
+  background: #d32f2f;
+  color: #fff;
+}
+.parasite-lab .lab-label.pl-stage.pl-blocked b {
+  background: #fff;
+  color: #d32f2f;
+}
+.parasite-lab .lab-label.pl-stage.pl-blocked em {
+  color: rgba(255, 255, 255, 0.85);
+}
+.parasite-lab .lab-label.pl-part {
+  background: rgba(28, 33, 39, 0.86);
+  color: #fff;
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+.parasite-lab .lab-label.pl-place {
+  background: rgba(255, 255, 255, 0.75);
+  color: #3b4651;
+  font-size: 0.7rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.parasite-lab .lab-label.pl-host {
+  background: #1c2127;
+  color: #fff;
+  font-size: 0.78rem;
+}
+.parasite-lab .lab-label.pl-block {
+  background: #d32f2f;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.parasite-lab .lab-label.pl-token {
+  background: #ffd23f;
+  color: #1c2127;
+  font-weight: 800;
+  pointer-events: none;
+}
+.pl-chip-look {
+  background: #ffd23f;
+  color: #1c2127;
+}
+.pl-chip-move {
+  background: #9fd3ff;
+  color: #1c2127;
+}
+
+/* panel */
+.pl-panel {
+  gap: 10px;
+}
+.pl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pl-hab,
+.pl-inf {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--c);
+}
+.pl-inf {
+  background: #e65100;
+}
+.pl-stagecard {
+  display: grid;
+  gap: 8px;
+}
+.pl-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 10px;
+  margin: 0;
+  font-size: 0.86rem;
+}
+.pl-facts dt {
+  font-weight: 700;
+  color: var(--muted);
+}
+.pl-facts dd {
+  margin: 0;
+}
+.pl-more summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.pl-stagechips button {
+  font-size: 0.78rem;
+  padding: 5px 9px;
+}
+.pl-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pl-controls {
+  display: grid;
+  gap: 6px;
+}
+.pl-controls button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #f4f1ec;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--charcoal);
+  font: 600 0.9rem var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.pl-controls button[aria-pressed='true'] {
+  background: #d32f2f;
+  color: #fff;
+  box-shadow: none;
+}
+.pl-stops {
+  font-size: 0.9rem;
+  color: #b71c1c;
+}
+.pl-small {
+  font-size: 0.78rem;
+}
+.pl-quiz {
+  display: grid;
+  gap: 6px;
+}
+.pl-quiz button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--charcoal);
+  font: 600 0.92rem var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.pl-quiz button:disabled {
+  cursor: default;
+}
+.pl-quiz button.pl-right {
+  background: #2e7d32;
+  color: #fff;
+  box-shadow: none;
+}
+.pl-quiz button.pl-wrong {
+  background: #b71c1c;
+  color: #fff;
+  box-shadow: none;
+}
+.pl-verdict {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+.pl-ok {
+  background: #e8f5e9;
+}
+.pl-no {
+  background: #fdecea;
+}
+
+/* below the lab */
+.pl-disease h3,
+.pl-famacha h3 {
+  font: 700 0.98rem var(--font-heading);
+  margin: 10px 0 4px;
+}
+.pl-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.pl-cols ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+}
+.pl-cols li + li {
+  margin-top: 4px;
+}
+.pl-famacha ol {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 6px 0;
+}
+.pl-famacha li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: 0.78rem;
+  text-align: center;
+}
+.pl-famacha i {
+  width: 100%;
+  height: 34px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.pl-compare td,
+.pl-compare th {
+  vertical-align: top;
+}
+.pl-compare .pl-col-now {
+  background: #fbf3d9;
+}
+.parasite-lab .el-species {
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .pl-cols {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+@media (max-width: 760px) {
+  .pl-modes .pl-long {
+    display: none;
+  }
+  .pl-modes .pl-short {
+    display: inline;
+    font: 700 0.9rem var(--font-heading);
+    color: inherit;
+  }
+  .pl-modes button {
+    padding: 8px 4px;
+  }
+  .pl-canvas {
+    height: 62vh;
+    min-height: 380px;
+  }
+  .pl-parasites button {
+    padding: 8px 9px;
+  }
+  .pl-parasites button b {
+    font-size: 0.88rem;
+  }
+  .pl-parasites button span {
+    font-size: 0.7rem;
+  }
+  .parasite-lab .lab-label.pl-stage em {
+    display: none;
+  }
+  .pl-famacha span {
+    font-size: 0.68rem;
+  }
+}
+@media (max-width: 420px) {
+  .parasite-lab .el-movie-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .parasite-lab .el-movie-buttons {
+    flex-wrap: wrap;
+  }
+}
+
+/* where they live */
+.pl-species button[aria-selected='true'] {
+  background: #1c2127;
+}
+.parasite-lab .lab-label.pl-organ {
+  background: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--g, transparent), 0 2px 6px rgba(28, 33, 39, 0.2);
+}
+.parasite-lab .lab-label.pl-organ b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--g, #1c2127);
+  color: #fff;
+  font-size: 0.68rem;
+}
+.parasite-lab .lab-label.pl-organ.is-highlighted {
+  background: #ffd23f;
+}
+.parasite-lab .lab-label.pl-organ.pl-dim {
+  opacity: 0.55;
+}
+.pl-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pl-groups button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #f4f1ec;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--charcoal);
+  font: 600 0.8rem var(--font-body);
+  cursor: pointer;
+}
+.pl-groups button i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--g);
+}
+.pl-groups button[aria-pressed='true'] {
+  background: var(--g, #1c2127);
+  color: #fff;
+  box-shadow: none;
+}
+.pl-groups button[aria-pressed='true'] i {
+  background: #fff;
+}
+.pl-entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.pl-entries li {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #faf8f4;
+  border-left: 4px solid var(--g);
+  font-size: 0.86rem;
+}
+.pl-entries p {
+  margin: 0;
+}
+.pl-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.pl-gchip,
+.pl-zoo {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--g);
+}
+.pl-zoo {
+  background: #e65100;
+}
+.pl-entry-stage {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 2px 0 4px !important;
+}
+.pl-stagechips button small {
+  font-weight: 800;
+  margin-left: 2px;
+}
+.pl-stagechips button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pl-gdot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--g);
+}
+.pl-where-title {
+  font: 700 1rem var(--font-heading);
+  margin: 16px 0 4px;
+}
+.pl-where td {
+  font-size: 0.8rem;
+  min-width: 130px;
+}
+.pl-where .pl-row-now {
+  background: #fbf3d9;
+}
+.pl-linkbtn {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 700 0.86rem var(--font-body);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.pl-groups-table td {
+  min-width: 150px;
+}
+@media (max-width: 760px) {
+  .pl-modes button {
+    padding: 8px 2px;
+  }
+  .pl-modes .pl-short {
+    font-size: 0.8rem !important;
+  }
+  .pl-entries {
+    max-height: none;
+  }
+}

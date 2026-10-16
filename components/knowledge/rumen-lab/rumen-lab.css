@@ -1,0 +1,129 @@
+/* Ruminant digestive system lab */
+
+.rl-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.rl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rl-chips button {
+  width: auto;
+  min-height: 0;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  font: 600 0.84rem var(--font-body);
+  cursor: pointer;
+}
+.rl-chips button[aria-pressed='true'] {
+  background: var(--ink);
+  color: #fff;
+}
+.rl-stage {
+  position: relative;
+  height: min(72vh, 660px);
+}
+.rl-building {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+.rumen-lab .lab-label.rl-organ {
+  background: #1c2127;
+  color: #fff;
+  font-weight: 700;
+}
+.rumen-lab .lab-label.rl-small {
+  font-size: 0.72rem;
+}
+.rumen-lab .lab-label.rl-alert {
+  background: #c62828;
+  color: #fff;
+  font-weight: 700;
+}
+.rumen-lab .lab-label.rl-token {
+  background: #ffd23f;
+  color: #1c2127;
+  font-weight: 800;
+}
+.rl-where {
+  margin: 0;
+  font-size: 0.92rem;
+}
+.rl-list {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+.rl-h3 {
+  margin: 4px 0 0;
+  font: 700 0.98rem var(--font-heading);
+}
+.rl-cap {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.rl-cap th,
+.rl-cap td {
+  text-align: left;
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rl-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rl-nav button {
+  width: auto;
+}
+.rl-back {
+  background: #fff;
+  color: var(--ink);
+  border: 0;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.rl-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.rl-steps button {
+  width: 100%;
+  min-height: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--charcoal);
+  cursor: pointer;
+}
+.rl-steps button[aria-current='step'] {
+  background: var(--ink);
+  color: #fff;
+}
+@media (max-width: 760px) {
+  .rl-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rl-stage {
+    height: 60vh;
+  }
+}

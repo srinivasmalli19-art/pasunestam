@@ -1,0 +1,164 @@
+/* 3D Poultry Egg Lab — builds on the AI, torsion and estrous lab styles. */
+
+.egl-parts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.egl-parts button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  color: var(--charcoal);
+  font: inherit;
+  text-align: left;
+}
+.egl-parts button b {
+  font: 700 1rem var(--font-heading);
+}
+.egl-parts button span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.egl-parts button[aria-selected='true'] {
+  background: #7a4a12;
+  color: #fff;
+  box-shadow: none;
+}
+.egl-parts button[aria-selected='true'] span {
+  color: rgba(255, 255, 255, 0.85);
+}
+.egl-parts button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.egl-opts {
+  justify-content: flex-end;
+}
+.egl-slider-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.egg-lab .lab-label.egl-seg {
+  background: #fff;
+  border: 1.5px solid #c45c78;
+  font-weight: 700;
+}
+.egg-lab .lab-label.egl-layer {
+  background: #1c2127;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* the egg so far */
+.egl-sofar {
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.egl-sofar h3 {
+  margin: 0;
+  font: 700 0.98rem var(--font-heading);
+}
+.egl-where {
+  margin: 2px 0 8px;
+  font-size: 0.86rem;
+}
+.egl-sofar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.egl-sofar li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  grid-template-areas: 'name bar' 'where where';
+  align-items: center;
+  gap: 0 8px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.egl-sofar li span {
+  grid-area: name;
+}
+.egl-sofar li em {
+  grid-area: where;
+  font-style: normal;
+  font-size: 0.72rem;
+}
+.egl-sofar li i {
+  grid-area: bar;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #7a4a12 calc(var(--p) * 100%), #e3e1d8 0);
+}
+.egl-sofar li.egl-done {
+  color: var(--charcoal);
+}
+.egl-sofar li.egl-done span::before {
+  content: '✓ ';
+  color: #2e7d32;
+  font-weight: 800;
+}
+.egl-sofar li.egl-now {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* parts table */
+.egl-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+.egl-table tr.egl-row-now {
+  background: #fff6dd;
+}
+.egl-foot {
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+.egl-next {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.egl-next div {
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #fffdf8;
+}
+.egl-next p {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .egl-parts {
+    grid-template-columns: 1fr;
+  }
+  .egl-parts button:disabled {
+    display: none;
+  }
+  .egl-next {
+    grid-template-columns: 1fr;
+  }
+  .egl-opts {
+    justify-content: flex-start;
+  }
+}
